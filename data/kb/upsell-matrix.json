@@ -1,11 +1,177 @@
 [
   {
     "id": "upsell-001",
-    "trigger_product_ids": ["example-detox-complex"],
+    "trigger_product_ids": ["zeolite-mini"],
     "trigger_intents": ["product_question", "order"],
-    "offer_product_id": "example-probiotic",
-    "why": "Пример формата. TODO: проверить",
-    "manager_phrase": "Пример фразы менеджеру. TODO: проверить",
-    "exclude_if": ["complaint", "negative_sentiment", "contraindications"]
+    "offer_product_id": "zeolite-standard",
+    "why": "Клиент уже знаком с цеолитом или берёт его повторно. СТАНДАРТ — тот же продукт, но 60 саше вместо 40, и саше обходится немного дешевле: 58,17 ₽ против 59,75 ₽ с промокодом.",
+    "manager_phrase": "Если МИНИ вам подошёл, можно взять СТАНДАРТ: там 60 саше, и каждое выходит чуть дешевле. Посчитать для вас разницу?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/product/zeolite-mini-3/"
+  },
+  {
+    "id": "upsell-002",
+    "trigger_product_ids": ["zeolite-mini", "zeolite-standard"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "zeolite-max",
+    "why": "Клиент хочет пройти курс по базовой схеме из инструкции: 3 цикла по 10 дней по 4 саше, всего 120 саше. В МАКС ровно 120 саше и самая низкая цена за саше, не придётся докупать упаковки посреди курса.",
+    "manager_phrase": "На полный базовый курс по инструкции уходит 120 саше, это ровно одна упаковка МАКС, и в ней самая выгодная цена за саше. Оформить МАКС вместо этого формата?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/instrukcii/zeolite-max-67/"
+  },
+  {
+    "id": "upsell-003",
+    "trigger_product_ids": ["zeolite-standard"],
+    "trigger_intents": ["order"],
+    "offer_product_id": "set-clean-skin",
+    "why": "Клиент берёт две упаковки СТАНДАРТ. Набор «Чистая кожа» — это те же 2 упаковки с готовой схемой на 2,5 месяца, и без промокода он дешевле: 7 580 ₽ против 8 180 ₽.",
+    "manager_phrase": "Если планируете брать две упаковки СТАНДАРТ, их удобнее оформить набором «Чистая кожа»: состав тот же, есть готовая схема, и без промокода это дешевле. Переоформить так?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/product/chistaya-kozha-19/"
+  },
+  {
+    "id": "upsell-004",
+    "trigger_product_ids": ["zeolite-standard", "zeolite-max"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "mineral-complex",
+    "why": "Цеолит и Минеральный комплекс производитель объединяет в большинстве своих наборов («Детокс», «Здоровье ЖКТ», «Антиотек», «Красота изнутри»), это привычная для бренда пара для курса.",
+    "manager_phrase": "К цеолиту часто берут Минеральный комплекс, в наборах O-complex они идут парой. Рассказать, как их совмещают по схеме?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human", "minor"],
+    "source_url": "https://o-complex.com/product/detoks-10/"
+  },
+  {
+    "id": "upsell-005",
+    "trigger_product_ids": ["mineral-complex"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "zeolite-standard",
+    "why": "Минеральный комплекс в наборах O-complex идёт вместе с цеолитом СТАНДАРТ. Если клиент берёт комплекс отдельно, логично показать ему эту пару.",
+    "manager_phrase": "Минеральный комплекс в наборах O-complex идёт вместе с цеолитом СТАНДАРТ. Добавить упаковку к заказу или рассказать про готовый набор?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/product/detoks-10/"
+  },
+  {
+    "id": "upsell-006",
+    "trigger_product_ids": ["zeolite-standard", "mineral-complex"],
+    "trigger_intents": ["order"],
+    "offer_product_id": "set-detox",
+    "why": "Клиент собирает 2 упаковки СТАНДАРТ и Минеральный комплекс по отдельности. Набор «Детокс» — ровно этот состав с расписанной схемой на месяц, и без промокода он дешевле: 11 970 ₽ против 12 870 ₽.",
+    "manager_phrase": "Две упаковки СТАНДАРТ и Минеральный комплекс — это ровно состав набора «Детокс». В нём уже расписана схема на месяц, и без промокода набор дешевле. Оформить набором?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human", "minor"],
+    "source_url": "https://o-complex.com/product/detoks-10/"
+  },
+  {
+    "id": "upsell-007",
+    "trigger_product_ids": ["hair-mask"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "set-strong-hair",
+    "why": "Маска для волос входит в интенсивный курс «Крепкие волосы» вместе с цеолитом и Минеральным комплексом. Клиенту, который хочет комплексный уход, удобнее взять готовый курс с общей схемой.",
+    "manager_phrase": "Эта маска входит в курс «Крепкие волосы». В нём вместе с ней цеолит и Минеральный комплекс по готовой схеме. Показать состав и цену курса?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human", "minor"],
+    "source_url": "https://o-complex.com/product/krepkie-volosy-46/"
+  },
+  {
+    "id": "upsell-008",
+    "trigger_product_ids": ["face-mask"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "set-radiant-skin",
+    "why": "Маска для лица входит в курс «Сияющая кожа» вместе с 2 упаковками цеолита СТАНДАРТ. Производитель предлагает сочетать внешний уход и приём цеолита по схеме.",
+    "manager_phrase": "Маска для лица есть в курсе «Сияющая кожа»: к ней добавлены 2 упаковки цеолита и расписана схема. Рассказать подробнее?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/product/siyayushchaya-kozha-47/"
+  },
+  {
+    "id": "upsell-009",
+    "trigger_product_ids": ["set-clean-skin"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "face-mask",
+    "why": "Набор «Чистая кожа» состоит только из цеолита. У производителя есть и внешний уход для кожи, Маска для лица, в том числе в курсе «Сияющая кожа».",
+    "manager_phrase": "В набор «Чистая кожа» входит только цеолит. Если хотите добавить внешний уход, у нас есть минеральная Маска для лица. Добавить её в заказ?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/product/siyayushchaya-kozha-47/"
+  },
+  {
+    "id": "upsell-010",
+    "trigger_product_ids": ["face-mask"],
+    "trigger_intents": ["order"],
+    "offer_product_id": "hair-mask",
+    "why": "Обе маски из одной линейки ухода на основе цеолита, стоят одинаково и приедут в одной посылке. Это удобно тем, кто пробует уходовые продукты бренда.",
+    "manager_phrase": "Кстати, в той же линейке есть Маска для волос, она приедет в этой же посылке. Добавить?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"]
+  },
+  {
+    "id": "upsell-011",
+    "trigger_product_ids": ["hair-mask"],
+    "trigger_intents": ["order"],
+    "offer_product_id": "face-mask",
+    "why": "Обе маски из одной линейки ухода на основе цеолита, стоят одинаково и приедут в одной посылке.",
+    "manager_phrase": "Если интересен уход и для лица, в той же линейке есть минеральная Маска для лица. Добавить в эту же посылку?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"]
+  },
+  {
+    "id": "upsell-012",
+    "trigger_product_ids": ["mineral-bottle"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "replacement-minerals",
+    "why": "Минеральные шарики в бутылке служат ограниченное время (по инструкции 3–6 месяцев), потом их меняют. Запасной комплект избавит от отдельного заказа и доставки позже.",
+    "manager_phrase": "Шарики в бутылке меняют примерно раз в несколько месяцев. Можно сразу взять запасной комплект «Сменные минералы», чтобы не заказывать отдельно. Добавить?",
+    "exclude_if": ["complaint", "negative_sentiment", "needs_human"],
+    "source_url": "https://o-complex.com/instrukcii/mineral-bottle-500ml-13/"
+  },
+  {
+    "id": "upsell-013",
+    "trigger_product_ids": ["mineral-bottle"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "water-filter",
+    "why": "Бутылка — для воды с собой, а сорбент-очиститель кладут в чайник дома. По описанию производителя, он снижает жёсткость воды и помогает против накипи.",
+    "manager_phrase": "Для воды дома у нас есть сорбент-очиститель на основе цеолита: его кладут прямо в чайник, и по описанию производителя меньше накипи. Рассказать подробнее?",
+    "exclude_if": ["complaint", "negative_sentiment", "needs_human"],
+    "source_url": "https://o-complex.com/product/water-filter-5/"
+  },
+  {
+    "id": "upsell-014",
+    "trigger_product_ids": ["water-filter"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "mineral-bottle",
+    "why": "Сорбент-очиститель работает дома в чайнике, а Минеральная бутылка на 500 мл удобна, чтобы брать воду с собой.",
+    "manager_phrase": "Если часто берёте воду с собой, посмотрите Минеральную бутылку на 500 мл с картриджем из минеральных шариков. Прислать описание?",
+    "exclude_if": ["complaint", "negative_sentiment", "needs_human"],
+    "source_url": "https://o-complex.com/product/mineral-bottle-500ml-13/"
+  },
+  {
+    "id": "upsell-015",
+    "trigger_product_ids": ["zeolite-max", "set-detox"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "mineral-bottle",
+    "why": "Инструкция цеолита рекомендует во время приёма питьевой режим 30–40 мл воды на 1 кг веса в день. Бутылка на 500 мл помогает держать воду под рукой. Аргумент — удобство, а не лечебный эффект.",
+    "manager_phrase": "Во время курса инструкция советует пить достаточно воды. Многим удобно держать её под рукой в Минеральной бутылке на 500 мл. Показать?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"],
+    "source_url": "https://o-complex.com/instrukcii/zeolite-max-67/"
+  },
+  {
+    "id": "upsell-016",
+    "trigger_product_ids": ["toothpaste-mint"],
+    "trigger_intents": ["order"],
+    "offer_product_id": "toothpaste-citrus",
+    "why": "Второй вкус той же пасты без фтора, парабенов и SLS. Удобно для семьи или чтобы чередовать вкусы, приедет в той же посылке.",
+    "manager_phrase": "Есть и цитрусовый вариант этой пасты, например для кого-то из семьи. Положить одну в ту же посылку?",
+    "exclude_if": ["complaint", "negative_sentiment", "needs_human"]
+  },
+  {
+    "id": "upsell-017",
+    "trigger_product_ids": ["toothpaste-citrus"],
+    "trigger_intents": ["order"],
+    "offer_product_id": "toothpaste-mint",
+    "why": "Второй вкус той же пасты без фтора, парабенов и SLS. Удобно для семьи или чтобы чередовать вкусы, приедет в той же посылке.",
+    "manager_phrase": "Есть и мятный вариант этой пасты. Положить одну в ту же посылку?",
+    "exclude_if": ["complaint", "negative_sentiment", "needs_human"]
+  },
+  {
+    "id": "upsell-018",
+    "trigger_product_ids": ["zeolite-mini", "zeolite-standard", "zeolite-max", "set-detox"],
+    "trigger_intents": ["order", "delivery_payment"],
+    "offer_product_id": "toothpaste-mint",
+    "why": "Недорогое дополнение к заказу из той же линейки на основе цеолита, приедет в той же посылке без отдельной доставки.",
+    "manager_phrase": "Кстати, у нас есть зубная паста с цеолитом без фтора и SLS, она может приехать вместе с заказом. Добавить?",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications", "needs_human"]
   }
 ]
