@@ -60,6 +60,15 @@ if (!parsed.success) {
 }
 
 // 2. few-shots
+// Учебные примеры не должны пересекаться с реальным каталогом: иначе модель переносит учебные факты в ответы
+const realProducts: { id: string; name: string; aliases?: string[] }[] = JSON.parse(
+  readFileSync(join(root, "data", "kb", "products.json"), "utf8"),
+);
+const realTerms = realProducts.flatMap((p) => [p.id, p.name, ...(p.aliases ?? [])]);
+const fewShotText = JSON.stringify(FEW_SHOTS).toLowerCase();
+for (const term of [...realTerms, "детокс", "цеолит", "detox"]) {
+  check(!fewShotText.includes(term.toLowerCase()), `few-shots: встречается реальный товар или синоним «${term}»`);
+}
 for (const s of FEW_SHOTS) {
   const r = AssistResponseSchema.safeParse(s.response);
   check(r.success, `few-shot "${s.name}": ответ не проходит AssistResponseSchema`);

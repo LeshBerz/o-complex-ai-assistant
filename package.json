@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "build-index": "tsx scripts/build-index.ts",
-    "eval": "tsx scripts/eval.ts"
+    "eval": "tsx --env-file-if-exists=.env.local --use-env-proxy scripts/eval.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.0",

@@ -21,6 +21,7 @@ export type Chunk = z.infer<typeof ChunkSchema>;
 export const ProductSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
+  aliases: z.array(z.string()).optional(),
   category: z.string(),
   short_description: z.string(),
   composition: z.string().optional(),

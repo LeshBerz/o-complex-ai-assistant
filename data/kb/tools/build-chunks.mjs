@@ -99,7 +99,8 @@ for (const p of products) {
     p.usage && `Как применять: ${p.usage}`,
     p.contraindications && `Противопоказания: ${p.contraindications}`,
   ].filter(Boolean);
-  splitBalanced(`${p.name}. `, segments.flatMap(sentencesOf)).forEach((text, i) => {
+  const title = p.aliases?.length ? `${p.name} (клиенты также называют: ${p.aliases.join(", ")})` : p.name;
+  splitBalanced(`${title}. `, segments.flatMap(sentencesOf)).forEach((text, i) => {
     chunks.push({ id: `product:${p.id}:${i + 1}`, text, source: p.url, type: "product", product_id: p.id });
   });
 }

@@ -144,7 +144,7 @@ function mentionedProducts(req: AssistRequest, kb: KnowledgeBase, retrievedIds: 
   }
   const dialog = normalizeName([...req.dialog_history.map((t) => t.text), req.client_message].join("\n"));
   for (const p of kb.products) {
-    if (dialog.includes(normalizeName(p.name))) ids.add(p.id);
+    if ([p.name, ...(p.aliases ?? [])].some((n) => dialog.includes(normalizeName(n)))) ids.add(p.id);
   }
   return ids;
 }
@@ -165,6 +165,17 @@ export function isSensitiveTopic(text: string): boolean {
 const MINOR_TOPIC =
   /(^|[^а-яё])(ребен|ребён|детям|детей|дети|детск|малыш|подрост|несовершеннолет|школьни|сыну|сына|сынок|дочк|дочер|дочь)/i;
 
+/**
+ * Язык текста по буквам, букв нет → null. Русский, если кириллицы хотя бы 40%:
+ * русские клиенты пишут латиницей бренды и служебные слова («SYSTEM», теги), английские кириллицу — почти никогда.
+ */
+export function detectLanguage(text: string): "ru" | "en" | null {
+  const cyr = text.match(/[а-яё]/gi)?.length ?? 0;
+  const lat = text.match(/[a-z]/gi)?.length ?? 0;
+  if (cyr + lat === 0) return null;
+  return cyr / (cyr + lat) >= 0.4 ? "ru" : "en";
+}
+
 export function postProcess(
   raw: LlmResponse,
   kb: KnowledgeBase,
@@ -182,6 +193,14 @@ export function postProcess(
   } else if (raw.intent === "complaint" && !needsHuman) {
     needsHuman = true;
     reason = "Жалоба клиента: решение (возврат, замену) принимает менеджер.";
+  }
+  // ответ не на языке клиента не отправляем без проверки
+  const clientLang = detectLanguage(clientMessage);
+  const replyLang = detectLanguage(raw.client_reply);
+  if (clientLang && replyLang && clientLang !== replyLang) {
+    const langReason = `Черновик написан не на языке клиента (${replyLang} вместо ${clientLang}): перепишите перед отправкой.`;
+    reason = needsHuman && reason ? `${reason} ${langReason}` : langReason;
+    needsHuman = true;
   }
   return {
     client_reply: raw.client_reply,
