@@ -17,7 +17,7 @@ npm install
 ```bash
 cp "../AmoCRM AI Assistant/.env.local" .
 ```
-(`.env.local` нужен как минимум backend-dev; остальным, если ключ используется.)
+(`.env.local` с `OPENROUTER_API_KEY` нужен backend-dev. Остальным не обязателен. Зависимости во все worktree тимлид уже поставил.)
 
 Затем в каждой папке новый чат Claude Code (`claude` или вкладка Code в приложении с этой папкой) и вставить соответствующий промпт ниже целиком.
 
@@ -104,9 +104,22 @@ cp "../AmoCRM AI Assistant/.env.local" .
 Сначала прочитай CLAUDE.md, AGENTS.md, src/lib/contracts.ts и data/kb/README.md.
 
 Уточнения тимлида:
-- Провайдер выбран: OpenAI через @ai-sdk/openai (уже установлен). Эмбеддинги берутся из env
-  EMBEDDING_MODEL, генерация из LLM_MODEL. Актуальные имена моделей проверь по документации,
-  не угадывай. Если «gpt-4o-mini» в .env.example устарела, исправь .env.example.
+- Провайдер выбран (см. docs/decisions.md, раздел «смена провайдера»):
+  * LLM: OpenRouter через @openrouter/ai-sdk-provider@3 (уже установлен), ключ OPENROUTER_API_KEY,
+    модель из env LLM_MODEL. Выбери бесплатную модель (суффикс :free) с поддержкой structured outputs:
+    список на https://openrouter.ai/models (фильтры по цене 0 и по supported parameters). Проверь
+    её реальным вызовом generateObject на русском, запиши выбор и 1–2 запасные модели в .env.example и ai-log.
+    Лимит 50 запросов в день, не жги его: отлаживай на 2–3 запросах.
+  * llm.ts: провайдер выбирается по LLM_PROVIDER. Сейчас есть только openrouter, но код должен
+    позволять добавить google или gigachat, не трогая assist.ts.
+  * Эмбеддинги: локально через @huggingface/transformers@4 (уже установлен), модель из env
+    EMBEDDING_MODEL=Xenova/multilingual-e5-small, pipeline("feature-extraction", ..., { dtype: "q8" }),
+    pooling mean + normalize. У e5 обязательны префиксы: "query: " для запроса и "passage: " для чанков.
+    Тимлид проверил запуском: dim 384, первая загрузка ~16 с. У e5 баллы cosine сжаты в узкий диапазон
+    (релевантный ~0.85, нерелевантный ~0.78), поэтому порог подбирай на данных или используй
+    относительный (отставание от top-1), а не «0.5 как у OpenAI». Pipeline держи синглтоном.
+  * Next.js 16 + onnxruntime-node: вероятно, нужен serverExternalPackages в next.config.ts
+    (этот файл твоя зона). Проверь по docs в node_modules/next/dist/docs/ и запуском route handler.
 - В проекте стоят ai@7 и zod@4. Документацию AI SDK сверяй именно для v7 (WebFetch на
   ai-sdk.dev). Проверь, остался ли generateObject в v7 или его заменил generateText с
   output/Output.object. Выбери рекомендованный способ и запиши выбор в ai-log.
@@ -125,10 +138,12 @@ cp "../AmoCRM AI Assistant/.env.local" .
   заменит kb-builder.
 - После ответа модели проверяй, что upsell.product_id есть в upsell-matrix.json. Если его там нет,
   ставь recommended=false. То же с sources: оставляй только id, которые реально были в выдаче retrieval.
-- Если .env.local без ключа, прогон на реальной модели не делай и явно напиши об этом в отчёте.
+- Если в .env.local нет OPENROUTER_API_KEY, прогон на реальной модели не делай и явно напиши об этом
+  в отчёте. build-index и retrieval всё равно проверь: им ключ не нужен.
 
-Зона: src/lib/assist.ts, src/lib/retrieval.ts, src/lib/llm.ts, src/lib/kb.ts, src/lib/usage.ts,
-src/app/api/assist/, scripts/build-index.ts, .env.example, data/kb/chunks.dev.json.
+Зона: src/lib/assist.ts, src/lib/retrieval.ts, src/lib/embeddings.ts, src/lib/llm.ts, src/lib/kb.ts,
+src/lib/usage.ts, src/app/api/assist/, scripts/build-index.ts, .env.example, next.config.ts,
+data/kb/chunks.dev.json.
 
 Правила:
 - Работай только в своей зоне. Контракт не меняй, предложения пиши в конец docs/contract-changes.md.

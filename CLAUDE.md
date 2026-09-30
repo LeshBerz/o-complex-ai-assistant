@@ -12,7 +12,8 @@
 - TypeScript (strict), Node.js актуальной LTS
 - Next.js (App Router), текущая стабильная версия
 - Vercel AI SDK (`ai`) + провайдер модели + `zod`, структурированный вывод через `generateObject`
-- Эмбеддинги через API; векторный поиск в памяти (cosine, top-k)
+- LLM: OpenRouter (бесплатные модели `:free`) через `@openrouter/ai-sdk-provider`; провайдер переключается через env
+- Эмбеддинги локально через `@huggingface/transformers` (multilingual-e5-small); векторный поиск в памяти (cosine, top-k)
 - React + Tailwind (+ shadcn/ui) для UI
 - amoCRM REST API v4 через `fetch`, без сторонних SDK
 - Версии пакетов проверять через `npm view <пакет> version`, не угадывать
