@@ -1,0 +1,43 @@
+{
+  "_page": 1,
+  "_links": {
+    "self": {
+      "href": "https://example.amocrm.ru/api/v4/leads/123456/notes?limit=50&page=1"
+    }
+  },
+  "_embedded": {
+    "notes": [
+      {
+        "id": 42709325,
+        "entity_id": 123456,
+        "created_by": 123123,
+        "updated_by": 123123,
+        "created_at": 1790675900,
+        "updated_at": 1790675900,
+        "responsible_user_id": 123123,
+        "group_id": 0,
+        "note_type": "sms_in",
+        "params": {
+          "text": "Добрый день! Подскажите, заказ уже отправлен?",
+          "phone": "+79990000000"
+        },
+        "account_id": 9999
+      },
+      {
+        "id": 42709326,
+        "entity_id": 123456,
+        "created_by": 123123,
+        "updated_by": 123123,
+        "created_at": 1790675950,
+        "updated_at": 1790675950,
+        "responsible_user_id": 123123,
+        "group_id": 0,
+        "note_type": "common",
+        "params": {
+          "text": "Внутренний комментарий: клиентка просила звонить после 18:00"
+        },
+        "account_id": 9999
+      }
+    ]
+  }
+}

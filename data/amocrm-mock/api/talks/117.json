@@ -1,0 +1,19 @@
+{
+  "talk_id": 117,
+  "created_at": 1790676000,
+  "updated_at": 1790676300,
+  "rate": 0,
+  "contact_id": 555,
+  "chat_id": "c0ffee00-1111-4222-8333-444455556666",
+  "entity_id": 123456,
+  "entity_type": "lead",
+  "is_in_work": true,
+  "is_read": false,
+  "origin": "telegram",
+  "account_id": 9999,
+  "_links": {
+    "self": {
+      "href": "https://example.amocrm.ru/api/v4/talks/117"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": 35000001,
+  "name": "Консультация",
+  "sort": 20,
+  "is_editable": true,
+  "pipeline_id": 7777,
+  "color": "#fffeb2",
+  "type": 0,
+  "account_id": 9999,
+  "_links": {
+    "self": {
+      "href": "https://example.amocrm.ru/api/v4/leads/pipelines/7777/statuses/35000001"
+    }
+  }
+}
