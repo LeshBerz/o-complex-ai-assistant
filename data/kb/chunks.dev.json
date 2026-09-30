@@ -1,0 +1,34 @@
+[
+  {
+    "id": "product:example-detox-complex:1",
+    "text": "dev-fixture. Пример: детокс-комплекс (категория «детокс»). Описание, состав и способ применения — TODO: проверить, данные вымышлены и нужны только для отладки retrieval. Цена не подтверждена.",
+    "source": "data/kb/chunks.dev.json",
+    "type": "product",
+    "product_id": "example-detox-complex"
+  },
+  {
+    "id": "product:example-detox-complex:contra",
+    "text": "dev-fixture. Противопоказания «Пример: детокс-комплекс»: индивидуальная непереносимость компонентов, беременность и кормление грудью. TODO: проверить. При хронических заболеваниях, беременности и для детей нужна консультация врача.",
+    "source": "data/kb/chunks.dev.json",
+    "type": "product",
+    "product_id": "example-detox-complex"
+  },
+  {
+    "id": "policy:delivery:dev",
+    "text": "dev-fixture. Доставка O-complex: способы, сроки и стоимость доставки по России — TODO: проверить. Точные сроки менеджер уточняет по адресу клиента.",
+    "source": "data/kb/chunks.dev.json",
+    "type": "policy"
+  },
+  {
+    "id": "policy:returns:dev",
+    "text": "dev-fixture. Возврат и обмен O-complex: условия возврата товара надлежащего и ненадлежащего качества — TODO: проверить. При жалобе на качество менеджер запрашивает фото и номер заказа.",
+    "source": "data/kb/chunks.dev.json",
+    "type": "policy"
+  },
+  {
+    "id": "faq:kak-oplatit:dev",
+    "text": "dev-fixture. Как оплатить заказ O-complex? Способы оплаты (карта онлайн, при получении) — TODO: проверить.",
+    "source": "data/kb/chunks.dev.json",
+    "type": "faq"
+  }
+]
