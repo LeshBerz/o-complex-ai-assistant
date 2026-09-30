@@ -1,0 +1,13 @@
+[
+  {
+    "id": "example-detox-complex",
+    "name": "Пример: детокс-комплекс",
+    "category": "детокс",
+    "short_description": "TODO: проверить — заглушка формата, заменит kb-builder",
+    "contraindications": "TODO: проверить",
+    "price_rub": null,
+    "url": "https://example.com/product/example-detox-complex",
+    "source_url": "https://example.com/product/example-detox-complex",
+    "todo": ["всё — это пример формата"]
+  }
+]

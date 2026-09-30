@@ -1,0 +1,9 @@
+{
+  "_note": "ПРЕДПОЛОЖЕНИЕ, уточнит amocrm-integrator",
+  "leads": {
+    "status": [
+      { "id": "123456", "status_id": "142", "pipeline_id": "7777", "old_status_id": "141" }
+    ]
+  },
+  "account": { "id": "9999", "subdomain": "example" }
+}

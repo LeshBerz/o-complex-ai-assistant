@@ -1,0 +1,11 @@
+[
+  {
+    "id": "upsell-001",
+    "trigger_product_ids": ["example-detox-complex"],
+    "trigger_intents": ["product_question", "order"],
+    "offer_product_id": "example-probiotic",
+    "why": "Пример формата. TODO: проверить",
+    "manager_phrase": "Пример фразы менеджеру. TODO: проверить",
+    "exclude_if": ["complaint", "negative_sentiment", "contraindications"]
+  }
+]

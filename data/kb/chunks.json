@@ -1,0 +1,8 @@
+[
+  {
+    "id": "policy:delivery",
+    "text": "Доставка O-complex: TODO: проверить — заглушка формата, заменит kb-builder.",
+    "source": "data/kb/policies.md",
+    "type": "policy"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "_note": "ПРЕДПОЛОЖЕНИЕ, уточнит amocrm-integrator. Товары — id из data/kb/products.json (пока примеры).",
+  "deal": {
+    "id": 123456,
+    "name": "Заказ с сайта",
+    "price": 0,
+    "status_id": 142,
+    "pipeline_id": 7777,
+    "custom_fields_values": [
+      { "field_name": "Товары", "values": [{ "value": "example-detox-complex" }] }
+    ],
+    "_embedded": {
+      "contacts": [{ "id": 555, "name": "Анна", "is_main": true }]
+    }
+  },
+  "past_purchases": ["example-detox-complex"],
+  "messages": [
+    { "role": "client", "text": "Здравствуйте, я заказывала детокс-комплекс месяц назад.", "ts": "2026-09-29T10:00:00Z" },
+    { "role": "manager", "text": "Здравствуйте, Анна! Чем могу помочь?", "ts": "2026-09-29T10:02:00Z" },
+    { "role": "client", "text": "Можно ли его принимать курсом ещё раз и что взять вместе с ним?", "ts": "2026-09-29T10:05:00Z" }
+  ]
+}
