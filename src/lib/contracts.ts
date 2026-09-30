@@ -48,7 +48,9 @@ export type Sentiment = z.infer<typeof SentimentSchema>;
 
 export const UpsellSchema = z.object({
   recommended: z.boolean(),
-  /** только id из data/kb/upsell-matrix.json */
+  /** id правила из data/kb/upsell-matrix.json (например "upsell-015"); заполнено при recommended=true */
+  rule_id: z.string().optional(),
+  /** offer_product_id этого правила (это id из data/kb/products.json) */
   product_id: z.string().optional(),
   product_name: z.string().optional(),
   why: z.string(),

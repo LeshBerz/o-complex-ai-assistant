@@ -71,12 +71,24 @@
   offer_product_id: string;    // что предложить (id из products.json)
   why: string;                 // логика для менеджера (без мед. обещаний)
   manager_phrase: string;      // готовая фраза менеджеру
-  exclude_if?: string[];       // когда НЕ предлагать: "complaint", "negative_sentiment", "contraindications" и т.п.
+  exclude_if?: ExcludeIf[];    // когда НЕ предлагать (словарь ниже)
   source_url?: string;         // если связка взята с сайта (комплекты, "с этим покупают")
 }
 ```
 
 `Intent` = `product_question | delivery_payment | contraindications | complaint | order | other` (см. `src/lib/contracts.ts`).
+
+`ExcludeIf` — фиксированный словарь (проверяется zod-схемой в `src/lib/kb.ts`):
+
+| значение | правило отключается, если |
+|---|---|
+| `complaint` | intent = complaint |
+| `negative_sentiment` | sentiment = negative |
+| `contraindications` | intent = contraindications или в обращении есть вопрос о здоровье |
+| `needs_human` | обращение передаётся менеджеру (`needs_human = true`) |
+| `minor` | речь о несовершеннолетнем (ребёнок, подросток, «сыну/дочке») |
+
+Модель в ответе называет `upsell.rule_id` (id правила), backend проверяет правило целиком: триггер, `trigger_intents`, `exclude_if`, что `offer_product_id` не куплен ранее.
 
 Пример:
 

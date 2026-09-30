@@ -11,11 +11,13 @@ import {
   type AssistFn,
   type AssistRequest,
   type AssistResponse,
+  type Intent,
+  type Sentiment,
   type Upsell,
 } from "@/lib/contracts";
 import { buildSystemPrompt, buildUserMessage, PROMPT_VERSION } from "@/lib/prompts/system";
 import { fewShotMessages } from "@/lib/prompts/few-shots";
-import { getKnowledgeBase, type KnowledgeBase } from "@/lib/kb";
+import { getKnowledgeBase, type ExcludeIf, type KnowledgeBase, type UpsellRule } from "@/lib/kb";
 import { retrieve } from "@/lib/retrieval";
 import { generateStructured, getModelInfo } from "@/lib/llm";
 import { logUsage } from "@/lib/usage";
@@ -28,6 +30,7 @@ const LlmResponseSchema = z.object({
   client_reply: z.string(),
   upsell: z.object({
     recommended: z.boolean(),
+    rule_id: z.string().nullable(),
     product_id: z.string().nullable(),
     product_name: z.string().nullable(),
     why: z.string(),
@@ -39,7 +42,7 @@ const LlmResponseSchema = z.object({
   needs_human_reason: z.string().nullable(),
   sources: z.array(z.string()),
 });
-type LlmResponse = z.infer<typeof LlmResponseSchema>;
+export type LlmResponse = z.infer<typeof LlmResponseSchema>;
 
 const HISTORY_TURNS = 10;
 
@@ -57,36 +60,93 @@ function buildRetrievalQuery(req: AssistRequest): string {
   return [...lastClientTurns, req.client_message].join("\n");
 }
 
-/** Допродажа только из upsell-matrix.json и не при жалобе/негативе/противопоказаниях */
-function checkUpsell(raw: LlmResponse, kb: KnowledgeBase): Upsell {
+/** Что известно о ситуации, чтобы проверить правило матрицы */
+interface UpsellContext {
+  intent: Intent;
+  sentiment: Sentiment;
+  needsHuman: boolean;
+  sensitive: boolean;
+  minor: boolean;
+  /** товары, которые клиент купил или обсуждает */
+  mentioned: Set<string>;
+  pastPurchases: Set<string>;
+}
+
+const EXCLUDE_CHECKS: Record<ExcludeIf, (ctx: UpsellContext) => boolean> = {
+  complaint: (ctx) => ctx.intent === "complaint",
+  negative_sentiment: (ctx) => ctx.sentiment === "negative",
+  contraindications: (ctx) => ctx.intent === "contraindications" || ctx.sensitive,
+  needs_human: (ctx) => ctx.needsHuman,
+  minor: (ctx) => ctx.minor,
+};
+
+/** Причина, по которой правило не подходит, или null */
+function ruleBlockReason(rule: UpsellRule, ctx: UpsellContext): string | null {
+  if (!rule.trigger_product_ids.some((id) => ctx.mentioned.has(id))) {
+    return `товары-триггеры правила ${rule.id} не обсуждаются и не куплены`;
+  }
+  if (rule.trigger_intents && !rule.trigger_intents.includes(ctx.intent)) {
+    return `правило ${rule.id} не для ситуации «${ctx.intent}»`;
+  }
+  const excluded = (rule.exclude_if ?? []).find((e) => EXCLUDE_CHECKS[e](ctx));
+  if (excluded) return `правило ${rule.id} исключено: ${excluded}`;
+  if (ctx.pastPurchases.has(rule.offer_product_id)) {
+    return `товар ${rule.offer_product_id} клиент уже покупал`;
+  }
+  return null;
+}
+
+/**
+ * Допродажа только по правилу из upsell-matrix.json, прошедшему все проверки.
+ * Модель называет rule_id; если правило не подходит или его нет, пробуем другие правила
+ * с тем же товаром (один товар предлагается по разным правилам).
+ */
+function checkUpsell(raw: LlmResponse, kb: KnowledgeBase, ctx: UpsellContext): Upsell {
   const off = (why: string): Upsell => ({ recommended: false, why });
   const { upsell } = raw;
   if (!upsell.recommended) return off(upsell.why);
 
-  const productId = upsell.product_id ?? "";
-  const rules = kb.upsellMatrix.filter((r) => r.offer_product_id === productId);
-  if (rules.length === 0) {
-    return off(`Подсказка отключена: товара «${productId || "без id"}» нет в матрице допродаж.`);
+  const byId = kb.upsellMatrix.find((r) => r.id === upsell.rule_id);
+  const offerId = byId?.offer_product_id ?? upsell.product_id;
+  const candidates = [
+    ...(byId ? [byId] : []),
+    ...kb.upsellMatrix.filter((r) => r !== byId && r.offer_product_id === offerId),
+  ];
+  if (candidates.length === 0) {
+    return off(
+      `Подсказка отключена: правила «${upsell.rule_id ?? "без id"}» и товара «${upsell.product_id ?? "без id"}» нет в матрице допродаж.`,
+    );
   }
-  if (raw.intent === "complaint" || raw.sentiment === "negative") {
-    return off("Подсказка отключена: при жалобе или негативе допродажу не предлагаем.");
-  }
-  // негатив уже отсечён выше, остаётся проверить exclude_if по intent
-  const rule = rules.find((r) => !(r.exclude_if ?? []).includes(raw.intent));
-  if (!rule) {
-    return off(`Подсказка отключена: правило допродажи исключает ситуацию «${raw.intent}».`);
-  }
+  const reasons = candidates.map((r) => ruleBlockReason(r, ctx));
+  const rule = candidates.find((_, i) => reasons[i] === null);
+  if (!rule) return off(`Подсказка отключена: ${reasons[0]}.`);
 
   // Модель выбирает правило, а тексты берём из проверенной матрицы и каталога:
   // в своих формулировках модель добавляет обещания эффекта и выдумывает названия.
-  const product = kb.products.find((p) => p.id === productId);
+  const product = kb.products.find((p) => p.id === rule.offer_product_id);
   return {
     recommended: true,
-    product_id: productId,
+    rule_id: rule.id,
+    product_id: rule.offer_product_id,
     product_name: product?.name,
     why: rule.why,
     manager_phrase: rule.manager_phrase,
   };
+}
+
+const normalizeName = (s: string) => s.toLowerCase().replace(/[«»"()]/g, "").replace(/\s+/g, " ").trim();
+
+/** Купленные товары, товары из найденных чанков и товары, названные в диалоге по имени */
+function mentionedProducts(req: AssistRequest, kb: KnowledgeBase, retrievedIds: Set<string>): Set<string> {
+  const ids = new Set(req.customer_context?.past_purchases ?? []);
+  for (const c of kb.chunks) {
+    if (c.product_id && retrievedIds.has(c.id)) ids.add(c.product_id);
+  }
+  const dialog = normalizeName([...req.dialog_history.map((t) => t.text), req.client_message].join("\n"));
+  for (const p of kb.products) {
+    if (dialog.includes(normalizeName(p.name))) ids.add(p.id);
+  }
+  return ids;
 }
 
 /**
@@ -101,12 +161,17 @@ export function isSensitiveTopic(text: string): boolean {
   return SENSITIVE_TOPIC.test(text);
 }
 
-function postProcess(
+/** exclude_if "minor": речь о несовершеннолетнем */
+const MINOR_TOPIC =
+  /(^|[^а-яё])(ребен|ребён|детям|детей|дети|детск|малыш|подрост|несовершеннолет|школьни|сыну|сына|сынок|дочк|дочер|дочь)/i;
+
+export function postProcess(
   raw: LlmResponse,
   kb: KnowledgeBase,
   retrievedIds: Set<string>,
-  clientMessage: string,
+  req: AssistRequest,
 ): AssistResponse {
+  const clientMessage = req.client_message;
   let needsHuman = raw.needs_human;
   let reason = raw.needs_human_reason ?? undefined;
   const sensitive = raw.intent === "contraindications" || isSensitiveTopic(clientMessage);
@@ -122,7 +187,15 @@ function postProcess(
     client_reply: raw.client_reply,
     upsell: sensitive
       ? { recommended: false, why: "Подсказка отключена: вопрос о здоровье или противопоказаниях." }
-      : checkUpsell(raw, kb),
+      : checkUpsell(raw, kb, {
+          intent: raw.intent,
+          sentiment: raw.sentiment,
+          needsHuman,
+          sensitive,
+          minor: MINOR_TOPIC.test(clientMessage),
+          mentioned: mentionedProducts(req, kb, retrievedIds),
+          pastPurchases: new Set(req.customer_context?.past_purchases ?? []),
+        }),
     intent: raw.intent,
     sentiment: raw.sentiment,
     needs_human: needsHuman,
@@ -171,7 +244,7 @@ export const assist: AssistFn = async (req) => {
     });
 
     return AssistResultSchema.parse({
-      response: postProcess(result.object, kb, new Set(chunks.map((c) => c.id)), parsed.client_message),
+      response: postProcess(result.object, kb, new Set(chunks.map((c) => c.id)), parsed),
       meta: { usage: result.usage, latency_ms: latency, prompt_version: PROMPT_VERSION },
     });
   } catch (err) {

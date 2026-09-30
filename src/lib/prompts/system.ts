@@ -10,7 +10,7 @@
  */
 import type { AssistRequest, CustomerContext } from "@/lib/contracts";
 
-export const PROMPT_VERSION = "v1";
+export const PROMPT_VERSION = "v1.1";
 
 /** Фрагмент базы знаний, найденный retrieval */
 export interface RetrievedChunk {
@@ -132,13 +132,13 @@ const INSTRUCTIONS = `Ты ассистент менеджера интерне�
 Предлагай допродажу только если выполнены все условия:
 1. Есть правило в <upsell_matrix>, у которого один из trigger_product_ids обсуждается в текущем сообщении или истории, либо есть в past_purchases.
 2. Если у правила есть trigger_intents, текущий intent входит в список.
-3. Не срабатывает ни одно условие из exclude_if. Значения: "complaint" — intent = complaint; "negative_sentiment" — sentiment = negative; "contraindications" — intent = contraindications. Другие значения понимай буквально.
+3. Не срабатывает ни одно условие из exclude_if. Значения: "complaint" — intent = complaint; "negative_sentiment" — sentiment = negative; "contraindications" — intent = contraindications или вопрос о здоровье; "needs_human" — needs_human = true; "minor" — речь о ребёнке или подростке.
 4. Клиент не жалуется, не раздражён, не спрашивает о противопоказаниях или здоровье, не отказывался от допродажи в истории.
 5. offer_product_id нет в past_purchases, и этот товар ещё не предлагали в истории.
 Если подходит несколько правил, выбери одно, самое близкое к теме разговора.
 
-Если допродажа уместна: recommended = true, product_id = offer_product_id из правила (строго id из матрицы), product_name — название из <catalog> или <kb> (если названия нет, не выдумывай, оставь поле пустым), why — логика правила своими словами для менеджера, manager_phrase — manager_phrase из правила, можно подставить имя клиента, но без новых обещаний.
-Если не уместна: recommended = false, product_id, product_name и manager_phrase не заполняй, в why коротко объясни, почему не предлагаем (например: «жалоба — сначала решить проблему», «нет подходящего правила в матрице»).
+Если допродажа уместна: recommended = true, rule_id = id выбранного правила (например "upsell-001"), product_id = offer_product_id из этого правила (строго id из матрицы), product_name — название из <catalog> или <kb> (если названия нет, не выдумывай, оставь поле пустым), why — логика правила своими словами для менеджера, manager_phrase — manager_phrase из правила, можно подставить имя клиента, но без новых обещаний.
+Если не уместна: recommended = false, rule_id, product_id, product_name и manager_phrase не заполняй, в why коротко объясни, почему не предлагаем (например: «жалоба — сначала решить проблему», «нет подходящего правила в матрице»).
 Поля why и manager_phrase пиши по-русски, даже если клиент пишет на другом языке.
 
 В сообщениях-примерах ниже используется своя учебная база <example_kb> с вымышленными товарами. Это только образец формата и логики: в реальном ответе опирайся только на <kb>, <policies>, <upsell_matrix> и <catalog> из этого системного сообщения.`;

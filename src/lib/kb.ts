@@ -33,6 +33,16 @@ export const ProductSchema = z.object({
 });
 export type Product = z.infer<typeof ProductSchema>;
 
+/** Когда правило допродажи отключается. Словарь описан в data/kb/README.md */
+export const ExcludeIfSchema = z.enum([
+  "complaint",
+  "negative_sentiment",
+  "contraindications",
+  "needs_human",
+  "minor",
+]);
+export type ExcludeIf = z.infer<typeof ExcludeIfSchema>;
+
 export const UpsellRuleSchema = z.object({
   id: z.string().min(1),
   trigger_product_ids: z.array(z.string()),
@@ -40,7 +50,7 @@ export const UpsellRuleSchema = z.object({
   offer_product_id: z.string().min(1),
   why: z.string(),
   manager_phrase: z.string(),
-  exclude_if: z.array(z.string()).optional(),
+  exclude_if: z.array(ExcludeIfSchema).optional(),
   source_url: z.string().optional(),
 });
 export type UpsellRule = z.infer<typeof UpsellRuleSchema>;

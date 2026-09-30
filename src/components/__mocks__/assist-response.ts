@@ -7,10 +7,12 @@ export const mockAssistResult: AssistResult = {
       "Здравствуйте! Спасибо за вопрос. Уточню детали и вернусь к вам в ближайшее время.",
     upsell: {
       recommended: true,
-      product_id: "example-probiotic",
-      product_name: "Пример: пробиотик",
-      why: "Пример: товар из того же комплекта (заглушка).",
-      manager_phrase: "Кстати, к этому комплексу часто берут ... — рассказать подробнее?",
+      rule_id: "upsell-015",
+      product_id: "mineral-bottle",
+      product_name: "Минеральная бутылка (500ml) + минеральные шарики",
+      why: "Мок: тексты правила upsell-015 из data/kb/upsell-matrix.json.",
+      manager_phrase:
+        "Во время курса инструкция советует пить достаточно воды. Многим удобно держать её под рукой в Минеральной бутылке на 500 мл. Показать?",
     },
     intent: "product_question",
     sentiment: "neutral",

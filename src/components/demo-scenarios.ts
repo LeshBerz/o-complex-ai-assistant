@@ -70,14 +70,14 @@ export const demoScenarios: DemoScenario[] = [
     mockVariant: "default",
     request: {
       client_message:
-        "Добрый день! Курс детокс-комплекса закончился, мне понравилось. Хочу заказать ещё раз.",
+        "Добрый день! Курс по набору «Детокс» закончился, мне понравилось. Хочу заказать ещё раз.",
       dialog_history: [
         { role: "manager", text: "Здравствуйте! Как вам курс, всё ли понравилось?" },
       ],
       customer_context: {
         name: "Анна",
-        // TODO: проверить — id должен совпадать с data/kb/products.json после наполнения базы
-        past_purchases: ["example-detox-complex"],
+        // id из data/kb/products.json: набор «Детокс»
+        past_purchases: ["set-detox"],
         deal_status: "Повторная продажа",
       },
     },

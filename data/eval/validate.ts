@@ -40,6 +40,23 @@ if (!parsed.success) {
   console.log("  по категориям:", Object.fromEntries(byCat));
   const todo = set.cases.filter((c) => c.expected.allowed_upsell_ids_todo).length;
   console.log(`  кейсов с TODO по upsell id: ${todo}`);
+
+  // допустимые допродажи и товары кейсов есть в реальной базе
+  const matrix: { offer_product_id: string }[] = JSON.parse(
+    readFileSync(join(root, "data", "kb", "upsell-matrix.json"), "utf8"),
+  );
+  const offers = new Set(matrix.map((r) => r.offer_product_id));
+  const products = new Set(
+    (JSON.parse(readFileSync(join(root, "data", "kb", "products.json"), "utf8")) as { id: string }[]).map((p) => p.id),
+  );
+  for (const c of set.cases) {
+    for (const id of c.expected.allowed_upsell_ids) {
+      check(offers.has(id), `cases.json ${c.id}: allowed_upsell_ids "${id}" нет среди offer_product_id матрицы`);
+    }
+    for (const id of [...c.products.flatMap((p) => p.id ?? []), ...(c.input.customer_context?.past_purchases ?? [])]) {
+      check(products.has(id), `cases.json ${c.id}: товара "${id}" нет в products.json`);
+    }
+  }
 }
 
 // 2. few-shots
@@ -50,8 +67,11 @@ for (const s of FEW_SHOTS) {
   if (u.recommended) {
     check(!!u.product_id && s.exampleKb.includes(`"offer_product_id":"${u.product_id}"`),
       `few-shot "${s.name}": upsell.product_id не из учебной матрицы`);
+    check(!!u.rule_id && s.exampleKb.includes(`"id":"${u.rule_id}"`),
+      `few-shot "${s.name}": upsell.rule_id не из учебной матрицы`);
   } else {
-    check(!u.product_id && !u.manager_phrase, `few-shot "${s.name}": recommended=false, но заполнен товар`);
+    check(!u.product_id && !u.manager_phrase && !u.rule_id,
+      `few-shot "${s.name}": recommended=false, но заполнен товар или правило`);
   }
   check(s.response.needs_human === !!s.response.needs_human_reason,
     `few-shot "${s.name}": needs_human_reason должен быть ровно при needs_human=true`);

@@ -234,6 +234,9 @@ function UpsellCard({ upsell }: { upsell: AssistResult["response"]["upsell"] }) 
         <p className="text-base font-semibold text-stone-900">
           {upsell.product_name ?? upsell.product_id ?? "Товар не указан"}
         </p>
+        {upsell.rule_id && (
+          <p className="-mt-2 text-xs text-stone-400">Правило матрицы: {upsell.rule_id}</p>
+        )}
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Почему подходит</p>
           <p className="text-sm text-stone-700">{upsell.why}</p>

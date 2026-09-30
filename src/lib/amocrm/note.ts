@@ -10,7 +10,8 @@ export function formatAssistNote({ response }: AssistResult): string {
   const { upsell } = response;
   if (upsell.recommended) {
     const product = upsell.product_name ?? upsell.product_id ?? "товар из матрицы";
-    lines.push(`💡 Допродажа: ${product} — ${upsell.why}`);
+    const rule = upsell.rule_id ? ` (правило ${upsell.rule_id})` : "";
+    lines.push(`💡 Допродажа: ${product}${rule} — ${upsell.why}`);
     if (upsell.manager_phrase) lines.push(`Как предложить: «${upsell.manager_phrase}»`);
   } else {
     lines.push(`💡 Допродажа: не предлагать — ${upsell.why}`);
