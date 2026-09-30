@@ -1,0 +1,40 @@
+{
+  "id": 123456,
+  "name": "Заказ с сайта",
+  "price": 0,
+  "responsible_user_id": 123123,
+  "group_id": 0,
+  "status_id": 35000001,
+  "pipeline_id": 7777,
+  "loss_reason_id": null,
+  "created_by": 123123,
+  "updated_by": 123123,
+  "created_at": 1788000000,
+  "updated_at": 1790676310,
+  "closed_at": null,
+  "closest_task_at": null,
+  "is_deleted": false,
+  "custom_fields_values": null,
+  "score": null,
+  "account_id": 9999,
+  "_links": {
+    "self": {
+      "href": "https://example.amocrm.ru/api/v4/leads/123456"
+    }
+  },
+  "_embedded": {
+    "tags": [],
+    "companies": [],
+    "contacts": [
+      {
+        "id": 555,
+        "is_main": true,
+        "_links": {
+          "self": {
+            "href": "https://example.amocrm.ru/api/v4/contacts/555"
+          }
+        }
+      }
+    ]
+  }
+}

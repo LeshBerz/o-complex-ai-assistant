@@ -1,0 +1,28 @@
+{
+  "_note": "Вебхук add_message (входящее сообщение клиента) после разбора x-www-form-urlencoded в объект. Структура message.add[0] взята из примера документации amoCRM (webhooks-format, «Пример массива при входящем сообщении»). Блок account для этого события в примере документации отсутствует, добавлен по аналогии с другими событиями — ПРЕДПОЛОЖЕНИЕ. Сырое тело: webhook-message-add.form.txt.",
+  "message": {
+    "add": [
+      {
+        "id": "a1b2c3d4-0000-4000-8000-000000000003",
+        "chat_id": "c0ffee00-1111-4222-8333-444455556666",
+        "talk_id": "117",
+        "contact_id": "555",
+        "text": "Можно ли пропить его курсом ещё раз и что взять вместе с ним?",
+        "created_at": "1790676300",
+        "message_type": "text",
+        "origin": "telegram",
+        "author": {
+          "id": "7a389a00-cr65-46m6-8216-06f39w12q3d8",
+          "type": "external",
+          "name": "Анна"
+        },
+        "element_id": "123456",
+        "element_type": "2"
+      }
+    ]
+  },
+  "account": {
+    "subdomain": "example",
+    "id": "9999"
+  }
+}

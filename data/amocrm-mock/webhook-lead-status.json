@@ -1,9 +1,27 @@
 {
-  "_note": "ПРЕДПОЛОЖЕНИЕ, уточнит amocrm-integrator",
+  "_note": "Вебхук status_lead (смена этапа сделки) после разбора x-www-form-urlencoded в объект. Поля leads.status[0] взяты из примера документации amoCRM (webhooks-format, «Пример массива»); pipeline_id в примере документации нет, поэтому не используется. Блок account — по примерам других событий в той же документации. Сырое тело: webhook-lead-status.form.txt.",
   "leads": {
     "status": [
-      { "id": "123456", "status_id": "142", "pipeline_id": "7777", "old_status_id": "141" }
+      {
+        "id": "123456",
+        "name": "Заказ с сайта",
+        "old_status_id": "35000000",
+        "status_id": "35000001",
+        "price": "0",
+        "responsible_user_id": "123123",
+        "last_modified": "1790676310",
+        "modified_user_id": "123123",
+        "created_user_id": "123123",
+        "date_create": "1788000000",
+        "account_id": "9999"
+      }
     ]
   },
-  "account": { "id": "9999", "subdomain": "example" }
+  "account": {
+    "subdomain": "example",
+    "id": "9999",
+    "_links": {
+      "self": "https://example.amocrm.ru"
+    }
+  }
 }

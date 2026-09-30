@@ -1,0 +1,32 @@
+{
+  "id": 555,
+  "name": "Анна Смирнова",
+  "first_name": "Анна",
+  "last_name": "Смирнова",
+  "responsible_user_id": 123123,
+  "group_id": 0,
+  "created_by": 123123,
+  "updated_by": 123123,
+  "created_at": 1788000000,
+  "updated_at": 1790676000,
+  "closest_task_at": null,
+  "custom_fields_values": [
+    {
+      "field_id": 700001,
+      "field_name": "Купленные товары",
+      "field_code": null,
+      "field_type": "textarea",
+      "values": [
+        {
+          "value": "example-detox-complex"
+        }
+      ]
+    }
+  ],
+  "account_id": 9999,
+  "_links": {
+    "self": {
+      "href": "https://example.amocrm.ru/api/v4/contacts/555"
+    }
+  }
+}
