@@ -211,7 +211,7 @@ src/app/api/assist/, scripts/build-index.ts, .env.example, data/kb/chunks.dev.js
 
 ```
 Все пять веток волны 1 готовы. Слей feat/kb, feat/prompt, feat/backend, feat/amocrm, feat/frontend
-в main по одной, в этом порядке.
+в master по одной, в этом порядке.
 - Конфликты в docs/ai-log.md и docs/contract-changes.md решай объединением: сохраняй все записи
   в хронологическом порядке.
 - Конфликты в package.json и package-lock.json: объедини зависимости, потом npm install.
