@@ -67,16 +67,8 @@ function readOptionalText(file: string): string {
   return existsSync(full) ? readFileSync(full, "utf8") : "";
 }
 
-/** Временные чанки для отладки подмешиваются только при KB_DEV_FIXTURES=1 */
-export function devFixturesEnabled(): boolean {
-  return process.env.KB_DEV_FIXTURES === "1";
-}
-
 export function loadChunks(): Chunk[] {
   const chunks = readJson("chunks.json", z.array(ChunkSchema));
-  if (devFixturesEnabled() && existsSync(path.join(KB_DIR, "chunks.dev.json"))) {
-    chunks.push(...readJson("chunks.dev.json", z.array(ChunkSchema)));
-  }
   const seen = new Set<string>();
   for (const c of chunks) {
     if (seen.has(c.id)) throw new Error(`data/kb: повторяющийся id чанка "${c.id}"`);

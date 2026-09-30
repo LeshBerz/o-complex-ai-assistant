@@ -13,7 +13,8 @@ import {
   type AssistResponse,
   type Upsell,
 } from "@/lib/contracts";
-import { buildSystemPrompt, PROMPT_VERSION } from "@/lib/prompts/system";
+import { buildSystemPrompt, buildUserMessage, PROMPT_VERSION } from "@/lib/prompts/system";
+import { fewShotMessages } from "@/lib/prompts/few-shots";
 import { getKnowledgeBase, type KnowledgeBase } from "@/lib/kb";
 import { retrieve } from "@/lib/retrieval";
 import { generateStructured, getModelInfo } from "@/lib/llm";
@@ -40,22 +41,11 @@ const LlmResponseSchema = z.object({
 });
 type LlmResponse = z.infer<typeof LlmResponseSchema>;
 
-const ROLE_LABEL = { client: "Клиент", manager: "Менеджер" } as const;
 const HISTORY_TURNS = 10;
 
-/**
- * Временный адаптер user-сообщения. prompt-engineer добавит buildUserMessage(req)
- * в src/lib/prompts/system.ts — при слиянии переключиться на него.
- */
-function buildUserMessageLocal(req: AssistRequest): string {
-  const history = req.dialog_history
-    .slice(-HISTORY_TURNS)
-    .map((t) => `${ROLE_LABEL[t.role]}: ${t.text}`)
-    .join("\n");
-  return [
-    history ? `## История диалога\n${history}` : "## История диалога\n(пусто)",
-    `## Новое сообщение клиента\n${req.client_message}`,
-  ].join("\n\n");
+/** Каталог «id | название | категория» для <catalog> в системном промпте */
+function buildCatalog(kb: KnowledgeBase): string {
+  return kb.products.map((p) => `${p.id} | ${p.name} | ${p.category}`).join("\n");
 }
 
 /** Короткие реплики («а сколько стоит?») ищем вместе с предыдущими словами клиента */
@@ -153,7 +143,11 @@ export const assist: AssistFn = async (req) => {
     chunks,
     upsellMatrix: JSON.stringify(kb.upsellMatrix, null, 2),
     policies: kb.policies,
-    customer: parsed.customer_context,
+    catalog: buildCatalog(kb),
+  });
+  const userMessage = buildUserMessage({
+    ...parsed,
+    dialog_history: parsed.dialog_history.slice(-HISTORY_TURNS),
   });
 
   try {
@@ -161,7 +155,7 @@ export const assist: AssistFn = async (req) => {
       schema: LlmResponseSchema,
       schemaName: "assist_response",
       instructions,
-      messages: [{ role: "user", content: buildUserMessageLocal(parsed) }],
+      messages: [...fewShotMessages(), { role: "user", content: userMessage }],
     });
     const latency = Date.now() - started;
     await logUsage({
