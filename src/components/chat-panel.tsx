@@ -52,7 +52,7 @@ export function ChatPanel({
         }
       />
 
-      <div className="space-y-3 border-b border-stone-100 px-5 py-3">
+      <div data-tour="scenario" className="space-y-3 border-b border-stone-100 px-5 py-3">
         <label className="flex flex-col gap-1 text-xs font-medium text-stone-500">
           Сценарий
           <select
@@ -81,59 +81,61 @@ export function ChatPanel({
         ) : null}
       </div>
 
-      <div
-        ref={listRef}
-        className="max-h-[55dvh] flex-1 space-y-3 overflow-y-auto bg-stone-50/60 px-5 py-4 lg:max-h-none"
-        aria-live="polite"
-      >
-        {history.length === 0 && (
-          <p className="py-10 text-center text-sm text-stone-400">
-            История диалога пуста. Выберите сценарий или напишите обращение клиента ниже.
-          </p>
-        )}
-        {history.map((turn, i) => (
-          <Message key={i} turn={turn} />
-        ))}
-        {loading && (
-          <div className="flex items-center gap-2 text-xs text-stone-400">
-            <LoaderCircle className="size-3.5 animate-spin" />
-            Ассистент готовит подсказку…
-          </div>
-        )}
-      </div>
-
-      <form
-        className="flex flex-col gap-2 p-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (canSubmit) onSubmit();
-        }}
-      >
-        <label htmlFor="client-message" className="text-xs font-medium text-stone-500">
-          Новое сообщение клиента
-        </label>
-        <textarea
-          id="client-message"
-          value={draft}
-          onChange={(e) => onDraftChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && canSubmit) {
-              e.preventDefault();
-              onSubmit();
-            }
-          }}
-          rows={3}
-          placeholder="Например: подскажите, как принимать комплекс?"
-          className="resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-2 focus:outline-emerald-600"
-        />
-        <div className="flex items-center justify-between gap-2">
-          <span className="hidden text-xs text-stone-400 sm:inline">Ctrl + Enter — отправить</span>
-          <Button type="submit" variant="primary" disabled={!canSubmit} className="ml-auto">
-            {loading ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
-            Получить подсказку
-          </Button>
+      <div data-tour="dialog" className="flex min-h-0 flex-1 flex-col">
+        <div
+          ref={listRef}
+          className="max-h-[55dvh] flex-1 space-y-3 overflow-y-auto bg-stone-50/60 px-5 py-4 lg:max-h-none"
+          aria-live="polite"
+        >
+          {history.length === 0 && (
+            <p className="py-10 text-center text-sm text-stone-400">
+              История диалога пуста. Выберите сценарий или напишите обращение клиента ниже.
+            </p>
+          )}
+          {history.map((turn, i) => (
+            <Message key={i} turn={turn} />
+          ))}
+          {loading && (
+            <div className="flex items-center gap-2 text-xs text-stone-400">
+              <LoaderCircle className="size-3.5 animate-spin" />
+              Ассистент готовит подсказку…
+            </div>
+          )}
         </div>
-      </form>
+
+        <form
+          className="flex flex-col gap-2 p-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (canSubmit) onSubmit();
+          }}
+        >
+          <label htmlFor="client-message" className="text-xs font-medium text-stone-500">
+            Новое сообщение клиента
+          </label>
+          <textarea
+            id="client-message"
+            value={draft}
+            onChange={(e) => onDraftChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && canSubmit) {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
+            rows={3}
+            placeholder="Например: подскажите, как принимать комплекс?"
+            className="resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-2 focus:outline-emerald-600"
+          />
+          <div className="flex items-center justify-between gap-2">
+            <span className="hidden text-xs text-stone-400 sm:inline">Ctrl + Enter — отправить</span>
+            <Button type="submit" variant="primary" disabled={!canSubmit} className="ml-auto" data-tour="send">
+              {loading ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
+              Получить подсказку
+            </Button>
+          </div>
+        </form>
+      </div>
     </Card>
   );
 }

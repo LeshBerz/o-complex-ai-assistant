@@ -7,9 +7,19 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
+export function Card({
+  className,
+  children,
+  tour,
+}: {
+  className?: string;
+  children: ReactNode;
+  /** якорь для экскурсии: data-tour */
+  tour?: string;
+}) {
   return (
     <section
+      data-tour={tour}
       className={cn(
         "rounded-2xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(28,25,23,0.04)]",
         className,

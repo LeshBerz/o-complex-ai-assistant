@@ -142,7 +142,7 @@ function SuccessState({
         </div>
       )}
 
-      <Card>
+      <Card tour="reply-card">
         <CardHeader
           icon={<Sparkles className="size-4" />}
           title="Ответ клиенту"
@@ -169,7 +169,7 @@ function SuccessState({
 
       <UpsellCard upsell={response.upsell} />
 
-      <details className="group rounded-2xl border border-stone-200 bg-white">
+      <details data-tour="sources" className="group rounded-2xl border border-stone-200 bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-5 py-3 text-sm text-stone-600 [&::-webkit-details-marker]:hidden">
           <span className="flex items-center gap-2">
             <BookOpen className="size-4 text-stone-400" />
@@ -210,7 +210,7 @@ function SuccessState({
 function UpsellCard({ upsell }: { upsell: AssistResult["response"]["upsell"] }) {
   if (!upsell.recommended) {
     return (
-      <Card>
+      <Card tour="upsell-card">
         <CardHeader icon={<ShoppingBag className="size-4" />} title="Подсказка по допродаже" />
         <div className="flex items-start gap-3 p-5">
           <Ban className="mt-0.5 size-5 shrink-0 text-stone-400" />
@@ -224,7 +224,7 @@ function UpsellCard({ upsell }: { upsell: AssistResult["response"]["upsell"] }) 
   }
 
   return (
-    <Card>
+    <Card tour="upsell-card">
       <CardHeader
         icon={<ShoppingBag className="size-4" />}
         title="Подсказка по допродаже"
