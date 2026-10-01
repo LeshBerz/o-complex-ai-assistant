@@ -11,8 +11,13 @@ import { getAmoConfig } from "@/lib/amocrm/config";
 import { processWebhook } from "@/lib/amocrm/process";
 import { parseBracketForm, WebhookPayloadSchema } from "@/lib/amocrm/webhook";
 
-/** Сколько может жить обработка в after() на платформах, которые это учитывают */
-export const maxDuration = 60;
+/**
+ * Сколько может жить обработка в after() на платформах, которые это учитывают.
+ * Нужно уложить: холодную загрузку эмбеддингов (~16 с), до двух попыток модели по LLM_TIMEOUT_MS
+ * и запросы к amoCRM. 60 с не хватало даже при таймауте модели 45 с.
+ * TODO: проверить максимум для тарифа Vercel при деплое.
+ */
+export const maxDuration = 300;
 
 function secretMatches(given: string | null, expected: string): boolean {
   if (!given) return false;

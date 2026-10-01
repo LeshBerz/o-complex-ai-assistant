@@ -49,9 +49,17 @@ async function readSeed(): Promise<StoredMessage[]> {
   return z.object({ messages: z.array(StoredMessageSchema) }).parse(raw).messages;
 }
 
+/**
+ * Ошибка записи (например, файловая система только для чтения на serverless) не должна
+ * останавливать подсказку: теряется только история для следующих подсказок, о чём пишем в лог.
+ */
 export async function appendMessage(msg: StoredMessage): Promise<void> {
-  await mkdir(LOGS_DIR, { recursive: true });
-  await appendFile(MESSAGES_LOG, JSON.stringify(msg) + "\n", "utf8");
+  try {
+    await mkdir(LOGS_DIR, { recursive: true });
+    await appendFile(MESSAGES_LOG, JSON.stringify(msg) + "\n", "utf8");
+  } catch (err) {
+    console.warn(`[amocrm] сообщение ${msg.message_id} не сохранено в историю:`, (err as Error).message);
+  }
 }
 
 /** Переписка по сделке, от старых к новым, без дублей по message_id */

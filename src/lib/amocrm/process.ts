@@ -7,6 +7,7 @@ import { AssistRequestSchema } from "@/lib/contracts";
 import { createAmoClient, type AmoClient } from "./client";
 import { getAmoConfig, type AmoConfig } from "./config";
 import {
+  BOT_NOTE_PREFIX,
   buildCustomerContext,
   buildDialogHistory,
   loadMainContact,
@@ -24,6 +25,31 @@ export type ProcessOutcome =
 /** Уже обработанные id сообщений (защита от повторной доставки вебхука в рамках процесса) */
 const seen: Set<string> = ((globalThis as { __amoSeenMessages?: Set<string> }).__amoSeenMessages ??=
   new Set<string>());
+
+/**
+ * Сообщения, по которым примечание уже добавлено. Смена этапа сразу после сообщения
+ * не должна тратить второй запрос к модели на ту же реплику.
+ */
+const suggested: Set<string> = ((globalThis as { __amoSuggestedMessages?: Set<string> }).__amoSuggestedMessages ??=
+  new Set<string>());
+
+/**
+ * Модель не ответила (лимит, таймаут): amoCRM уже получил 200 и повторять не будет,
+ * поэтому оставляем менеджеру примечание, чтобы обращение не потерялось молча.
+ */
+async function addFailureNote(client: AmoClient, leadId: number, err: unknown): Promise<void> {
+  const reason = err instanceof Error ? err.message : String(err);
+  try {
+    await client.addNote(leadId, {
+      note_type: "common",
+      params: {
+        text: `${BOT_NOTE_PREFIX} Подсказку подготовить не удалось (${reason.slice(0, 200)}). Ответьте клиенту вручную.`,
+      },
+    });
+  } catch (noteErr) {
+    console.error(`[amocrm] сделка ${leadId}: не удалось добавить и примечание об ошибке:`, noteErr);
+  }
+}
 
 /**
  * Сделка по сообщению: через беседу (GET /api/v4/talks/{id} → entity_type/entity_id — по документации).
@@ -67,7 +93,13 @@ async function suggestForLead(
   const customer = await buildCustomerContext(client, lead, contact, config.purchasesFieldId);
   const request = AssistRequestSchema.parse(toAssistRequest(clientMessage, history, customer));
 
-  const result = await assist(request);
+  let result;
+  try {
+    result = await assist(request);
+  } catch (err) {
+    await addFailureNote(client, leadId, err);
+    throw err;
+  }
   const note = await client.addNote(leadId, {
     note_type: "common",
     params: { text: formatAssistNote(result) },
@@ -77,6 +109,7 @@ async function suggestForLead(
       `intent=${result.response.intent}, needs_human=${result.response.needs_human}, ` +
       `tokens=${result.meta.usage.inputTokens}/${result.meta.usage.outputTokens}, ${result.meta.latency_ms} мс`,
   );
+  if (excludeMessageId) suggested.add(excludeMessageId);
   return { kind: "note_added", leadId, noteId: note.id };
 }
 
@@ -94,10 +127,10 @@ async function onIncomingMessage(
   if (!leadId) return { kind: "skipped", reason: `сообщение ${msg.id}: сделка не найдена` };
 
   const createdAt = msg.created_at ?? Math.floor(Date.now() / 1000);
-  // Сначала контекст без текущего сообщения, потом сохраняем его в историю
-  const outcome = await suggestForLead(client, config, leadId, text, msg.id);
+  // Сначала сохраняем сообщение в историю: если модель упадёт, оно не потеряется для следующих подсказок.
+  // В контекст текущей подсказки оно не попадёт дважды: suggestForLead исключает его по id.
   await appendMessage({ lead_id: leadId, message_id: msg.id, role: "client", text, created_at: createdAt });
-  return outcome;
+  return suggestForLead(client, config, leadId, text, msg.id);
 }
 
 async function onOutgoingMessage(client: AmoClient, msg: OutgoingMessage): Promise<ProcessOutcome> {
@@ -123,6 +156,9 @@ async function onLeadEvent(client: AmoClient, config: AmoConfig, evt: LeadEvent)
   const stored = await listLeadMessages(evt.id, { includeMockSeed: config.mode === "mock" });
   const lastClient = stored.findLast((m) => m.role === "client");
   if (!lastClient) return { kind: "skipped", reason: `сделка ${evt.id}: нет сообщений клиента` };
+  if (suggested.has(lastClient.message_id)) {
+    return { kind: "skipped", reason: `сделка ${evt.id}: подсказка на сообщение ${lastClient.message_id} уже есть` };
+  }
   return suggestForLead(client, config, evt.id, lastClient.text, lastClient.message_id);
 }
 
