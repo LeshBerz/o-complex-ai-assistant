@@ -51,6 +51,8 @@ export const EvalExpectedSchema = z.object({
   allowed_upsell_ids: z.array(z.string()),
   /** пометка, если id ещё неизвестны: "TODO: заполнить после kb" */
   allowed_upsell_ids_todo: z.string().optional(),
+  /** клиент сам просит совета («что ещё посоветуете?»): товар из upsell можно назвать в client_reply */
+  reply_may_offer_upsell: z.boolean().optional(),
   /** язык client_reply */
   reply_language: z.enum(["ru", "en"]),
   /** что по смыслу должно быть в ответе (для LLM-судьи) */

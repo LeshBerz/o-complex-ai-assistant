@@ -262,6 +262,7 @@
         "needs_human": "any",
         "upsell_recommended": true,
         "allowed_upsell_ids": ["mineral-bottle", "toothpaste-mint"],
+        "reply_may_offer_upsell": true,
         "reply_language": "ru",
         "must": ["не здороваться повторно", "подтвердить, что поможем оформить заказ"],
         "forbidden_claims": ["предложение уже купленного товара как нового", "обещание лечебного эффекта от курса"],

@@ -93,8 +93,13 @@ for (const p of products) {
       : `Цена на сайте: ${p.price_rub.toLocaleString("ru-RU")} ₽ без промокода` +
         (promo ? `, ${promo} ₽ с промокодом` : "") +
         " (данные на 2026-09-30).";
+  // Пометки todo (кроме цены с промокодом, она уже в строке цены) идут в текст чанка:
+  // иначе модель видит, например, «60 саше» как факт и не знает, что он под вопросом
+  const unverified = (p.todo ?? []).filter((t) => !/^цена с промокодом/.test(t));
   const segments = [
     `Категория «${p.category}». ${p.short_description} ${price}`,
+    // сразу после описания, чтобы пометка оказалась в одном чанке с фактом, к которому чаще всего относится
+    unverified.length && `TODO: проверить, клиенту как факт не сообщать, менеджер уточнит: ${unverified.join("; ")}.`,
     p.composition && `Состав: ${p.composition}`,
     p.usage && `Как применять: ${p.usage}`,
     p.contraindications && `Противопоказания: ${p.contraindications}`,

@@ -55,7 +55,7 @@ export const FEW_SHOTS: FewShot[] = [
     },
     response: {
       client_reply:
-        "Анна, по описанию производителя сбор можно повторить после перерыва в 2 недели, а одной упаковки хватает на 21 день. Если перерыв уже прошёл, можно оформить заказ снова. Подсказать с оформлением?",
+        "Анна, по описанию производителя сбор можно повторить после перерыва в 2 недели, а одной упаковки хватает на 21 день. Если перерыв уже прошёл, можно оформить заказ снова. К сбору можем предложить учебный заварник «Образец»: сбор заваривают в нём. Подсказать с оформлением?",
       upsell: {
         recommended: true,
         rule_id: "upsell-ex-001",
@@ -68,6 +68,28 @@ export const FEW_SHOTS: FewShot[] = [
       sentiment: "positive",
       needs_human: false,
       sources: ["product:example-herbal-tea:1"],
+    },
+  },
+  {
+    name: "вопрос на английском: ответ на языке клиента, подсказка по-русски",
+    exampleKb: [KB_DELIVERY, KB_MATRIX, KB_CATALOG].join("\n\n"),
+    request: {
+      client_message: "Hi! How long does delivery take and how can I pay?",
+      dialog_history: [
+        { role: "manager", text: "Здравствуйте! Чем могу помочь?" },
+      ],
+    },
+    response: {
+      client_reply:
+        "Hello! Delivery is handled by the Primer-Express service and usually takes 9–12 business days. You can pay online with a Primer-Pay card. Let me know if you'd like help placing an order.",
+      upsell: {
+        recommended: false,
+        why: "Вопрос о доставке, конкретный товар не обсуждается, правило из матрицы не срабатывает.",
+      },
+      intent: "delivery_payment",
+      sentiment: "neutral",
+      needs_human: false,
+      sources: ["policy:delivery"],
     },
   },
   {
@@ -134,28 +156,6 @@ export const FEW_SHOTS: FewShot[] = [
       needs_human: true,
       needs_human_reason: "Запрос скидки 90% в форме попытки изменить инструкции ассистента. Скидку не подтверждали.",
       sources: [],
-    },
-  },
-  {
-    name: "вопрос на английском: ответ на языке клиента, подсказка по-русски",
-    exampleKb: [KB_DELIVERY, KB_MATRIX, KB_CATALOG].join("\n\n"),
-    request: {
-      client_message: "Hi! How long does delivery take and how can I pay?",
-      dialog_history: [
-        { role: "manager", text: "Здравствуйте! Чем могу помочь?" },
-      ],
-    },
-    response: {
-      client_reply:
-        "Hello! Delivery is handled by the Primer-Express service and usually takes 9–12 business days. You can pay online with a Primer-Pay card. Let me know if you'd like help placing an order.",
-      upsell: {
-        recommended: false,
-        why: "Вопрос о доставке, конкретный товар не обсуждается, правило из матрицы не срабатывает.",
-      },
-      intent: "delivery_payment",
-      sentiment: "neutral",
-      needs_human: false,
-      sources: ["policy:delivery"],
     },
   },
 ];

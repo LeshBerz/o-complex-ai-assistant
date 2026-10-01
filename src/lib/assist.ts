@@ -17,7 +17,7 @@ import {
 } from "@/lib/contracts";
 import { buildSystemPrompt, buildUserMessage, PROMPT_VERSION } from "@/lib/prompts/system";
 import { fewShotMessages } from "@/lib/prompts/few-shots";
-import { getKnowledgeBase, type ExcludeIf, type KnowledgeBase, type UpsellRule } from "@/lib/kb";
+import { getKnowledgeBase, type ExcludeIf, type KnowledgeBase, type Product, type UpsellRule } from "@/lib/kb";
 import { retrieve } from "@/lib/retrieval";
 import { generateStructured, getModelInfo } from "@/lib/llm";
 import { logUsage } from "@/lib/usage";
@@ -70,6 +70,21 @@ interface UpsellContext {
   /** товары, которые клиент купил или обсуждает */
   mentioned: Set<string>;
   pastPurchases: Set<string>;
+  /** клиент уже отказался от предложения менеджера в этом диалоге */
+  declined: boolean;
+}
+
+/** Отказ клиента: «нет, спасибо», «не нужно», «только набор» */
+const REFUSAL =
+  /(^|[^а-яё])(нет,?\s+спасибо|спасибо,?\s+нет|не\s+нужн|не\s+надо|не\s+хочу|не\s+буду|откажусь|не\s+интересн|без\s+(него|не[её]|них|этого|допол)|только\s+(это|его|е[её]|их|набор|один|одн))/i;
+
+/**
+ * Клиент ответил отказом после реплики менеджера. Считаем только реплики после менеджера:
+ * «нет, спасибо» в первом сообщении — не отказ от допродажи. Лучше упустить допродажу, чем навязывать.
+ */
+export function declinedEarlier(req: AssistRequest): boolean {
+  const turns = [...req.dialog_history, { role: "client" as const, text: req.client_message }];
+  return turns.some((t, i) => t.role === "client" && i > 0 && turns.slice(0, i).some((p) => p.role === "manager") && REFUSAL.test(t.text));
 }
 
 const EXCLUDE_CHECKS: Record<ExcludeIf, (ctx: UpsellContext) => boolean> = {
@@ -105,6 +120,7 @@ function checkUpsell(raw: LlmResponse, kb: KnowledgeBase, ctx: UpsellContext): U
   const off = (why: string): Upsell => ({ recommended: false, why });
   const { upsell } = raw;
   if (!upsell.recommended) return off(upsell.why);
+  if (ctx.declined) return off("Подсказка отключена: клиент уже отказался от предложения в этом диалоге.");
 
   const byId = kb.upsellMatrix.find((r) => r.id === upsell.rule_id);
   const offerId = byId?.offer_product_id ?? upsell.product_id;
@@ -135,6 +151,21 @@ function checkUpsell(raw: LlmResponse, kb: KnowledgeBase, ctx: UpsellContext): U
 }
 
 const normalizeName = (s: string) => s.toLowerCase().replace(/[«»"()]/g, "").replace(/\s+/g, " ").trim();
+
+/** Основа слова для поиска в любом падеже: «бутылка» → «бутыл», «минеральная» → «минеральн» */
+const stem = (w: string) => (w.length > 5 ? w.slice(0, -2) : w.length > 3 ? w.slice(0, -1) : w);
+
+const dialogText = (req: AssistRequest) => [...req.dialog_history.map((t) => t.text), req.client_message].join("\n");
+
+/** Упомянут ли товар в тексте: первые слова названия в любом падеже или синоним */
+export function mentionsProduct(text: string, product: Product): boolean {
+  const t = normalizeName(text).replace(/ё/g, "е");
+  // название до скобки или «+»: «Минеральная бутылка (500ml) + минеральные шарики» → «минеральная бутылка»
+  const core = product.name.split(/[(+]/)[0];
+  const words = normalizeName(core).replace(/ё/g, "е").split(/[^а-яa-z]+/).filter(Boolean).slice(0, 3);
+  const byName = new RegExp(words.map((w) => `${stem(w)}\\S*`).join("\\s+"));
+  return byName.test(t) || (product.aliases ?? []).some((a) => t.includes(normalizeName(a)));
+}
 
 /** Купленные товары, товары из найденных чанков и товары, названные в диалоге по имени */
 function mentionedProducts(req: AssistRequest, kb: KnowledgeBase, retrievedIds: Set<string>): Set<string> {
@@ -202,19 +233,31 @@ export function postProcess(
     reason = needsHuman && reason ? `${reason} ${langReason}` : langReason;
     needsHuman = true;
   }
+  const upsell: Upsell = sensitive
+    ? { recommended: false, why: "Подсказка отключена: вопрос о здоровье или противопоказаниях." }
+    : checkUpsell(raw, kb, {
+        intent: raw.intent,
+        sentiment: raw.sentiment,
+        needsHuman,
+        sensitive,
+        minor: MINOR_TOPIC.test(clientMessage),
+        mentioned: mentionedProducts(req, kb, retrievedIds),
+        pastPurchases: new Set(req.customer_context?.past_purchases ?? []),
+        declined: declinedEarlier(req),
+      });
+  // Модель назвала товар клиенту (клиент просил совета), а проверка допродажу отклонила:
+  // ответ с этим предложением без менеджера не отправляем
+  const rejected = raw.upsell.recommended && !upsell.recommended
+    ? kb.products.find((p) => p.id === raw.upsell.product_id)
+    : undefined;
+  if (rejected && mentionsProduct(raw.client_reply, rejected) && !mentionsProduct(dialogText(req), rejected)) {
+    const upsellReason = `Черновик предлагает «${rejected.name}», но допродажа не прошла проверку: уберите предложение перед отправкой.`;
+    reason = needsHuman && reason ? `${reason} ${upsellReason}` : upsellReason;
+    needsHuman = true;
+  }
   return {
     client_reply: raw.client_reply,
-    upsell: sensitive
-      ? { recommended: false, why: "Подсказка отключена: вопрос о здоровье или противопоказаниях." }
-      : checkUpsell(raw, kb, {
-          intent: raw.intent,
-          sentiment: raw.sentiment,
-          needsHuman,
-          sensitive,
-          minor: MINOR_TOPIC.test(clientMessage),
-          mentioned: mentionedProducts(req, kb, retrievedIds),
-          pastPurchases: new Set(req.customer_context?.past_purchases ?? []),
-        }),
+    upsell,
     intent: raw.intent,
     sentiment: raw.sentiment,
     needs_human: needsHuman,
