@@ -7,17 +7,21 @@ import {
   mockAssistResult,
   mockAssistResultNeedsHuman,
   mockAssistResultRepeatBuyer,
+  mockAssistResultComplaint,
+  mockAssistResultInjection,
 } from "@/components/__mocks__/assist-response";
 
 export type DataSource = "mock" | "api";
 
 /** Какой мок-ответ показывать в режиме «Мок» */
-export type MockVariant = "default" | "needs_human" | "repeat_buyer";
+export type MockVariant = "default" | "needs_human" | "repeat_buyer" | "complaint" | "injection";
 
 const mocks: Record<MockVariant, AssistResult> = {
   default: mockAssistResult,
   needs_human: mockAssistResultNeedsHuman,
   repeat_buyer: mockAssistResultRepeatBuyer,
+  complaint: mockAssistResultComplaint,
+  injection: mockAssistResultInjection,
 };
 
 /** Источник по умолчанию: NEXT_PUBLIC_USE_MOCK=1 включает мок. */

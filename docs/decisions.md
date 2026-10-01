@@ -7,7 +7,7 @@
 | Язык | TypeScript strict | 5.x (из шаблона Next) | Одни типы на фронте, бэке и в контрактах; zod-схемы дают и типы, и валидацию в рантайме |
 | Рантайм | Node.js LTS | 22.x | Актуальная LTS на машине |
 | Фреймворк | Next.js App Router | 16.3.7 | UI и API в одном проекте, деплой на Vercel в один клик — для демо самый короткий путь |
-| LLM-слой | Vercel AI SDK `ai` | 7.x | `generateObject` + zod-схема: структурированный ответ без ручного парсинга JSON, провайдер меняется через env |
+| LLM-слой | Vercel AI SDK `ai` | 7.x | `generateText` + `Output.object` по zod-схеме (в v7 `generateObject` помечен устаревшим, см. ai-log backend-dev): структурированный ответ без ручного парсинга JSON, провайдер меняется через env |
 | Провайдер LLM | OpenRouter, `@openrouter/ai-sdk-provider` | 3.x | Бесплатные модели `:free` без карты, официальный провайдер AI SDK, `generateObject` сохраняется. Провайдер задаётся через env, можно заменить без правки ядра |
 | Валидация | zod | 4.x | Контракт в одном месте (`src/lib/contracts.ts`) |
 | Эмбеддинги | локально, `@huggingface/transformers` + `Xenova/multilingual-e5-small` | 4.x | Бесплатно, без ключа и лимитов, понимает русский. Проверено запуском: dim 384, первая загрузка ~16 с |

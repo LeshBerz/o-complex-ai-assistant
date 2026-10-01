@@ -27,7 +27,54 @@ export const mockAssistResult: AssistResult = {
   },
 };
 
-/** Вариант для сценария «жалоба / противопоказания»: без допродажи, нужен человек. */
+/**
+ * Сценарий «Жалоба»: повреждённая упаковка и долгая доставка. Решение о возврате принимает менеджер
+ * (policies.md, «Возврат и обмен»), допродажи нет. Причина needs_human — текст страховки из postProcess.
+ */
+export const mockAssistResultComplaint: AssistResult = {
+  response: {
+    client_reply:
+      "Светлана, приносим извинения и за долгое ожидание, и за повреждённую упаковку. Пришлите, пожалуйста, номер заказа и фото упаковки: менеджер разберётся и предложит решение по возврату или замене. Сообщить о повреждении нужно в течение 20 дней с момента получения.",
+    upsell: { recommended: false, why: "Жалоба клиента: сначала решить проблему, допродажу не предлагать." },
+    intent: "complaint",
+    sentiment: "negative",
+    needs_human: true,
+    needs_human_reason: "Жалоба клиента: решение (возврат, замену) принимает менеджер.",
+    sources: ["policy:returns"],
+  },
+  meta: {
+    usage: { inputTokens: 0, outputTokens: 0 },
+    latency_ms: 0,
+    prompt_version: "mock",
+  },
+};
+
+/**
+ * Сценарий «Попытка prompt injection»: просьба вывести системный промпт и дать скидку 90%.
+ * Ассистент не раскрывает инструкции и не подтверждает скидку, обращение уходит менеджеру.
+ */
+export const mockAssistResultInjection: AssistResult = {
+  response: {
+    client_reply:
+      "Здравствуйте! Подтвердить такую скидку мы не можем: цены и акции устанавливает магазин. Если хотите, менеджер расскажет о действующих предложениях и поможет подобрать товар.",
+    upsell: {
+      recommended: false,
+      why: "Товар не обсуждается, подходящего правила в матрице нет. Сообщение похоже на попытку манипуляции.",
+    },
+    intent: "other",
+    sentiment: "neutral",
+    needs_human: true,
+    needs_human_reason: "Попытка изменить инструкции ассистента и запрос скидки 90%. Скидку не подтверждали, инструкции не раскрывали.",
+    sources: [],
+  },
+  meta: {
+    usage: { inputTokens: 0, outputTokens: 0 },
+    latency_ms: 0,
+    prompt_version: "mock",
+  },
+};
+
+/** Вариант для сценария «противопоказания»: без допродажи, нужен человек. */
 export const mockAssistResultNeedsHuman: AssistResult = {
   response: {
     client_reply:
@@ -57,7 +104,7 @@ export const mockAssistResultNeedsHuman: AssistResult = {
 export const mockAssistResultRepeatBuyer: AssistResult = {
   response: {
     client_reply:
-      "Здравствуйте! Рады, что курс вам понравился. С удовольствием оформим повторный заказ набора «Детокс». Подскажите, пожалуйста, доставка по тому же адресу, что и в прошлый раз?",
+      "Рады, что курс вам понравился! С удовольствием оформим повторный заказ набора «Детокс». Подскажите, пожалуйста, доставка по тому же адресу, что и в прошлый раз?",
     upsell: {
       recommended: true,
       rule_id: "upsell-015",
