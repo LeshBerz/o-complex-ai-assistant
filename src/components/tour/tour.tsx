@@ -125,6 +125,8 @@ export function Tour({
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const el = e.target instanceof HTMLElement ? e.target : null;
+    // открыто окно «База знаний»: клавиши его, а не экскурсии
+    if (el?.closest("dialog[open]")) return;
     const inField = !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
     if (e.key === "Escape" && el?.tagName !== "SELECT") {
       e.preventDefault();

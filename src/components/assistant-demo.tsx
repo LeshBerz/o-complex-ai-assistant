@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { Compass, FlaskConical, Leaf, Server } from "lucide-react";
+import { BookOpenCheck, Compass, FlaskConical, Leaf, Server } from "lucide-react";
 import type { AssistRequestInput, CustomerContext, DialogTurn } from "@/lib/contracts";
 import { demoScenarios } from "@/components/demo-scenarios";
 import { defaultDataSource, requestAssist, type DataSource } from "@/components/assist-client";
@@ -10,10 +10,12 @@ import { ResultPanel, type ResultState } from "@/components/result-panel";
 import { Button, cn } from "@/components/ui";
 import { Tour } from "@/components/tour/tour";
 import { tourSteps } from "@/components/tour/steps";
+import { KbDialog } from "@/components/kb/kb-dialog";
+import type { KbSummary } from "@/components/kb/kb-summary";
 
 type PendingRequest = { req: AssistRequestInput; mockVariant: "default" | "needs_human" };
 
-export function AssistantDemo({ autoStartTour = false }: { autoStartTour?: boolean }) {
+export function AssistantDemo({ kb, autoStartTour = false }: { kb: KbSummary; autoStartTour?: boolean }) {
   // экскурсия идёт в «Моке», чтобы не тратить дневной лимит модели
   const [source, setSource] = useState<DataSource>(autoStartTour ? "mock" : defaultDataSource);
   const [scenarioId, setScenarioId] = useState("");
@@ -24,6 +26,7 @@ export function AssistantDemo({ autoStartTour = false }: { autoStartTour?: boole
   const [lastRequest, setLastRequest] = useState<PendingRequest | null>(null);
   const [submitCount, setSubmitCount] = useState(0);
   const [tour, setTour] = useState({ open: autoStartTour, run: 0 });
+  const [kbOpen, setKbOpen] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
 
   const scenario = demoScenarios.find((s) => s.id === scenarioId);
@@ -113,7 +116,11 @@ export function AssistantDemo({ autoStartTour = false }: { autoStartTour?: boole
               <p className="text-xs text-stone-500">Ответ клиенту и подсказка по допродаже по базе знаний</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="ghost" onClick={() => setKbOpen(true)} data-tour="kb-button">
+              <BookOpenCheck className="size-4" />
+              База знаний
+            </Button>
             <Button variant="ghost" onClick={startTour} data-tour="tour-button">
               <Compass className="size-4" />
               Экскурсия
@@ -151,6 +158,8 @@ export function AssistantDemo({ autoStartTour = false }: { autoStartTour?: boole
           />
         </div>
       </main>
+
+      <KbDialog kb={kb} open={kbOpen} onClose={() => setKbOpen(false)} />
 
       {tour.open && (
         <Tour
