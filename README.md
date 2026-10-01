@@ -26,7 +26,7 @@
 ## Архитектура
 
 ```mermaid
-flowchart LR
+flowchart TB
     UI["Демо-UI<br/>Next.js + React"] -->|POST /api/assist| A
     CRM["amoCRM<br/>вебхук add_message"] -->|POST /api/amocrm/webhook| W["Сбор контекста сделки<br/>REST API v4"]
     W --> A
