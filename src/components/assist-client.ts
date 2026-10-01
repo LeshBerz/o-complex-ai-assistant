@@ -6,9 +6,19 @@ import {
 import {
   mockAssistResult,
   mockAssistResultNeedsHuman,
+  mockAssistResultRepeatBuyer,
 } from "@/components/__mocks__/assist-response";
 
 export type DataSource = "mock" | "api";
+
+/** Какой мок-ответ показывать в режиме «Мок» */
+export type MockVariant = "default" | "needs_human" | "repeat_buyer";
+
+const mocks: Record<MockVariant, AssistResult> = {
+  default: mockAssistResult,
+  needs_human: mockAssistResultNeedsHuman,
+  repeat_buyer: mockAssistResultRepeatBuyer,
+};
 
 /** Источник по умолчанию: NEXT_PUBLIC_USE_MOCK=1 включает мок. */
 export const defaultDataSource: DataSource =
@@ -27,11 +37,11 @@ function wait(ms: number, signal?: AbortSignal) {
 }
 
 async function fetchMock(
-  variant: "default" | "needs_human",
+  variant: MockVariant,
   signal?: AbortSignal,
 ): Promise<AssistResult> {
   await wait(MOCK_DELAY_MS, signal);
-  return variant === "needs_human" ? mockAssistResultNeedsHuman : mockAssistResult;
+  return mocks[variant];
 }
 
 async function fetchApi(req: AssistRequestInput, signal?: AbortSignal): Promise<AssistResult> {
@@ -67,7 +77,7 @@ async function fetchApi(req: AssistRequestInput, signal?: AbortSignal): Promise<
 
 export function requestAssist(
   req: AssistRequestInput,
-  opts: { source: DataSource; mockVariant: "default" | "needs_human"; signal?: AbortSignal },
+  opts: { source: DataSource; mockVariant: MockVariant; signal?: AbortSignal },
 ): Promise<AssistResult> {
   return opts.source === "mock"
     ? fetchMock(opts.mockVariant, opts.signal)

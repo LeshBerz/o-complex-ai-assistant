@@ -1,4 +1,5 @@
 import type { AssistRequestInput } from "@/lib/contracts";
+import type { MockVariant } from "@/components/assist-client";
 
 /**
  * Демо-сценарии для выпадающего списка «Сценарий».
@@ -9,7 +10,7 @@ export type DemoScenario = {
   id: string;
   title: string;
   /** Какой мок показывать в режиме «мок» */
-  mockVariant: "default" | "needs_human";
+  mockVariant: MockVariant;
   request: AssistRequestInput;
 };
 
@@ -67,7 +68,7 @@ export const demoScenarios: DemoScenario[] = [
   {
     id: "repeat-buyer",
     title: "Повторный покупатель",
-    mockVariant: "default",
+    mockVariant: "repeat_buyer",
     request: {
       client_message:
         "Добрый день! Курс по набору «Детокс» закончился, мне понравилось. Хочу заказать ещё раз.",

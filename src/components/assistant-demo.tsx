@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { BookOpenCheck, Compass, FlaskConical, Leaf, Server } from "lucide-react";
 import type { AssistRequestInput, CustomerContext, DialogTurn } from "@/lib/contracts";
 import { demoScenarios } from "@/components/demo-scenarios";
-import { defaultDataSource, requestAssist, type DataSource } from "@/components/assist-client";
+import { defaultDataSource, requestAssist, type DataSource, type MockVariant } from "@/components/assist-client";
 import { ChatPanel } from "@/components/chat-panel";
 import { ResultPanel, type ResultState } from "@/components/result-panel";
 import { Button, cn } from "@/components/ui";
@@ -13,7 +13,7 @@ import { tourSteps } from "@/components/tour/steps";
 import { KbDialog } from "@/components/kb/kb-dialog";
 import type { KbSummary } from "@/components/kb/kb-summary";
 
-type PendingRequest = { req: AssistRequestInput; mockVariant: "default" | "needs_human" };
+type PendingRequest = { req: AssistRequestInput; mockVariant: MockVariant };
 
 export function AssistantDemo({ kb, autoStartTour = false }: { kb: KbSummary; autoStartTour?: boolean }) {
   // экскурсия идёт в «Моке», чтобы не тратить дневной лимит модели

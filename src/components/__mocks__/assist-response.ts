@@ -47,3 +47,34 @@ export const mockAssistResultNeedsHuman: AssistResult = {
     prompt_version: "mock",
   },
 };
+
+/**
+ * Сценарий «Повторный покупатель»: клиентка купила набор «Детокс» и хочет повторить заказ.
+ * Допродажа — правило upsell-015 из data/kb/upsell-matrix.json (триггер set-detox, intent order),
+ * тексты правила дословно из матрицы. В ответе клиенту нет фактов о товаре, цене и доставке,
+ * которых нет в базе. Метрики нулевые: модель не вызывалась.
+ */
+export const mockAssistResultRepeatBuyer: AssistResult = {
+  response: {
+    client_reply:
+      "Здравствуйте, Анна! Рада, что курс вам понравился. С удовольствием оформлю повторный заказ набора «Детокс». Подскажите, пожалуйста, доставка по тому же адресу, что и в прошлый раз?",
+    upsell: {
+      recommended: true,
+      rule_id: "upsell-015",
+      product_id: "mineral-bottle",
+      product_name: "Минеральная бутылка (500ml) + минеральные шарики",
+      why: "Инструкция цеолита рекомендует во время приёма питьевой режим 30–40 мл воды на 1 кг веса в день. Бутылка на 500 мл помогает держать воду под рукой. Аргумент — удобство, а не лечебный эффект.",
+      manager_phrase:
+        "Во время курса инструкция советует пить достаточно воды. Многим удобно держать её под рукой в Минеральной бутылке на 500 мл. Показать?",
+    },
+    intent: "order",
+    sentiment: "positive",
+    needs_human: false,
+    sources: ["product:set-detox:1", "faq:kak-oformit-zakaz"],
+  },
+  meta: {
+    usage: { inputTokens: 0, outputTokens: 0 },
+    latency_ms: 0,
+    prompt_version: "mock",
+  },
+};
