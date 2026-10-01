@@ -37,6 +37,7 @@ import { retrieve } from "@/lib/retrieval";
 import { generateStructured, getModelInfo, LlmCallError, LlmConfigError } from "@/lib/llm";
 import { PROMPT_VERSION, type RetrievedChunk } from "@/lib/prompts/system";
 import { EvalSetSchema, toAssistRequest, type EvalCase } from "../data/eval/schema";
+import { genderedFormHits } from "../data/eval/gender";
 
 const ROOT = process.cwd();
 const OUT_DIR = path.join(ROOT, "logs", "eval");
@@ -110,6 +111,7 @@ const CHECK_NAMES = [
   "language",
   "sources",
   "upsell_in_reply",
+  "gender_neutral",
   "injection",
 ] as const;
 type CheckName = (typeof CHECK_NAMES)[number];
@@ -125,6 +127,7 @@ const CHECK_TITLES: Record<CheckName, string> = {
   language: "Язык client_reply",
   sources: "sources ⊆ id чанков базы",
   upsell_in_reply: "Нет допродажи/чужих товаров в client_reply (эвристика)",
+  gender_neutral: "Нет родовых форм отправителя и обращения к клиенту (эвристика, ru)",
   injection: "Prompt injection не сработал",
 };
 
@@ -398,6 +401,13 @@ export function runChecks(c: EvalCase, r: AssistResponse, kb: KnowledgeBase): Re
     ? fail(`в ответе клиенту товары, о которых клиент не спрашивал: ${foreign.join(", ")}${offer ? " (в т.ч. товар из upsell)" : ""}`)
     : pass();
 
+  if (e.reply_language !== "ru") {
+    out.gender_neutral = na("ответ не на русском");
+  } else {
+    const gendered = genderedFormHits(r.client_reply);
+    out.gender_neutral = gendered.length ? fail(gendered.join("; ")) : pass();
+  }
+
   if (c.category !== "prompt_injection") {
     out.injection = na();
   } else {
@@ -467,14 +477,15 @@ function summarize(file: EvalFile, cases: EvalCase[]): Summary {
   const okRuns = firstRuns.filter((r) => r.ok && r.checks);
   const checkRates = Object.fromEntries(
     CHECK_NAMES.map((n) => {
-      const rel = okRuns.map((r) => r.checks![n].status).filter((s) => s !== "n/a");
+      // в файлах старых прогонов новых проверок нет — считаем их «n/a»
+      const rel = okRuns.map((r) => r.checks![n]?.status ?? "n/a").filter((s) => s !== "n/a");
       // упавший прогон (ошибка модели) считается проваленной проверкой схемы
       const extra = n === "schema" ? firstRuns.length - okRuns.length : 0;
       return [n, { pass: rel.filter((s) => s === "pass").length, total: rel.length + extra }];
     }),
   ) as Summary["checkRates"];
   const allPass = {
-    pass: okRuns.filter((r) => CHECK_NAMES.every((n) => r.checks![n].status !== "fail")).length,
+    pass: okRuns.filter((r) => CHECK_NAMES.every((n) => r.checks![n]?.status !== "fail")).length,
     total: firstRuns.length,
   };
   const allOk = Object.values(file.runs).flat().filter((r) => r.ok && r.meta);
@@ -525,7 +536,7 @@ function unstableDiff(runs: RunRecord[] | undefined): string[] {
   cmp("sentiment", a.response!.sentiment, b.response!.sentiment);
   cmp("needs_human", a.response!.needs_human, b.response!.needs_human);
   cmp("upsell", a.response!.upsell.product_id ?? null, b.response!.upsell.product_id ?? null);
-  const failed = (r: RunRecord) => CHECK_NAMES.filter((n) => r.checks![n].status === "fail");
+  const failed = (r: RunRecord) => CHECK_NAMES.filter((n) => r.checks![n]?.status === "fail");
   cmp("проваленные проверки", failed(a), failed(b));
   return diffs;
 }
@@ -592,7 +603,7 @@ function renderSummary(file: EvalFile, cases: EvalCase[], baseline?: { file: Eva
       L.push(`| ${c.id} | ${c.category} | ОШИБКА: ${(r.error ?? "").slice(0, 120).replace(/\|/g, "/")} | | | | | | | |`);
       continue;
     }
-    const failed = CHECK_NAMES.filter((n) => r.checks![n].status === "fail");
+    const failed = CHECK_NAMES.filter((n) => r.checks![n]?.status === "fail");
     const j = file.judge[c.id];
     const u = r.response!.upsell;
     L.push(
@@ -603,9 +614,9 @@ function renderSummary(file: EvalFile, cases: EvalCase[], baseline?: { file: Eva
   for (const c of cases) {
     const r = file.runs[c.id]?.[0];
     if (!r?.ok) continue;
-    const failed = CHECK_NAMES.filter((n) => r.checks![n].status === "fail");
+    const failed = CHECK_NAMES.filter((n) => r.checks![n]?.status === "fail");
     if (!failed.length) continue;
-    L.push(`- **${c.id}**: ${failed.map((n) => `${n} — ${r.checks![n].detail}`).join("; ")}`);
+    L.push(`- **${c.id}**: ${failed.map((n) => `${n} — ${r.checks![n]?.detail}`).join("; ")}`);
   }
   if (s.repeated.length) {
     L.push("", "## Стабильность (2 прогона)", "");
@@ -727,7 +738,7 @@ async function main() {
     save();
 
     if (rec.ok) {
-      const failed = CHECK_NAMES.filter((n) => rec.checks![n].status === "fail");
+      const failed = CHECK_NAMES.filter((n) => rec.checks![n]?.status === "fail");
       console.log(
         `  ${c.id} #${runNo}: ${rec.served_model} ${rec.meta!.latency_ms} мс, ${rec.meta!.usage.inputTokens}/${rec.meta!.usage.outputTokens} ток.; ` +
           (failed.length ? `FAIL: ${failed.join(", ")}` : "все проверки ок"),

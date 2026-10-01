@@ -16,6 +16,7 @@ import {
   type RetrievedChunk,
 } from "../../src/lib/prompts/system";
 import { EvalSetSchema, toAssistRequest } from "./schema";
+import { genderedFormHits } from "./gender";
 
 const root = join(__dirname, "..", "..");
 const errors: string[] = [];
@@ -68,6 +69,18 @@ const realTerms = realProducts.flatMap((p) => [p.id, p.name, ...(p.aliases ?? []
 const fewShotText = JSON.stringify(FEW_SHOTS).toLowerCase();
 for (const term of [...realTerms, "детокс", "цеолит", "detox"]) {
   check(!fewShotText.includes(term.toLowerCase()), `few-shots: встречается реальный товар или синоним «${term}»`);
+}
+// Нейтральность по роду: ответы примеров и фразы матрицы (их видит менеджер и отправляет клиенту)
+for (const s of FEW_SHOTS) {
+  for (const h of genderedFormHits(`${s.response.client_reply}\n${s.response.upsell.manager_phrase ?? ""}`)) {
+    errors.push(`few-shot "${s.name}": родовая форма — ${h}`);
+  }
+}
+const matrixPhrases: { id: string; why: string; manager_phrase: string }[] = JSON.parse(
+  readFileSync(join(root, "data", "kb", "upsell-matrix.json"), "utf8"),
+);
+for (const r of matrixPhrases) {
+  for (const h of genderedFormHits(`${r.manager_phrase}\n${r.why}`)) errors.push(`upsell-matrix ${r.id}: родовая форма — ${h}`);
 }
 for (const s of FEW_SHOTS) {
   const r = AssistResponseSchema.safeParse(s.response);
