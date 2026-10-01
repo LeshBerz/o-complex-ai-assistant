@@ -10,7 +10,8 @@ export const mockAssistResult: AssistResult = {
       rule_id: "upsell-015",
       product_id: "mineral-bottle",
       product_name: "Минеральная бутылка (500ml) + минеральные шарики",
-      why: "Мок: тексты правила upsell-015 из data/kb/upsell-matrix.json.",
+      // тексты правила upsell-015 из data/kb/upsell-matrix.json
+      why: "Инструкция цеолита рекомендует во время приёма питьевой режим 30–40 мл воды на 1 кг веса в день. Бутылка на 500 мл помогает держать воду под рукой. Аргумент — удобство, а не лечебный эффект.",
       manager_phrase:
         "Во время курса инструкция советует пить достаточно воды. Многим удобно держать её под рукой в Минеральной бутылке на 500 мл. Показать?",
     },
@@ -22,7 +23,7 @@ export const mockAssistResult: AssistResult = {
   meta: {
     usage: { inputTokens: 0, outputTokens: 0 },
     latency_ms: 0,
-    prompt_version: "v0-stub",
+    prompt_version: "mock",
   },
 };
 
@@ -31,16 +32,18 @@ export const mockAssistResultNeedsHuman: AssistResult = {
   response: {
     client_reply:
       "Понимаю ваше беспокойство. Передаю вопрос менеджеру, он свяжется с вами. По вопросам здоровья рекомендуем проконсультироваться с врачом.",
-    upsell: { recommended: false, why: "Жалоба/медицинский вопрос — допродажа неуместна." },
+    // тексты страховки из postProcess в src/lib/assist.ts
+    upsell: { recommended: false, why: "Подсказка отключена: вопрос о здоровье или противопоказаниях." },
     intent: "contraindications",
     sentiment: "negative",
     needs_human: true,
-    needs_human_reason: "Вопрос о противопоказаниях",
+    needs_human_reason:
+      "Вопрос о здоровье или противопоказаниях: ответ сверяет менеджер, клиенту — консультация врача.",
     sources: [],
   },
   meta: {
     usage: { inputTokens: 0, outputTokens: 0 },
     latency_ms: 0,
-    prompt_version: "v0-stub",
+    prompt_version: "mock",
   },
 };
