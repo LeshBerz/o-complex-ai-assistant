@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:proxy": "node --env-file-if-exists=.env.local --use-env-proxy node_modules/next/dist/bin/next dev",
+    "dev:proxy": "node scripts/with-proxy.mjs node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
-    "start:proxy": "node --env-file-if-exists=.env.local --use-env-proxy node_modules/next/dist/bin/next start",
+    "start:proxy": "node scripts/with-proxy.mjs node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "build-index": "tsx scripts/build-index.ts",
