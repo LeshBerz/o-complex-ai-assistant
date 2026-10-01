@@ -57,7 +57,7 @@ export const mockAssistResultNeedsHuman: AssistResult = {
 export const mockAssistResultRepeatBuyer: AssistResult = {
   response: {
     client_reply:
-      "Здравствуйте, Анна! Рада, что курс вам понравился. С удовольствием оформлю повторный заказ набора «Детокс». Подскажите, пожалуйста, доставка по тому же адресу, что и в прошлый раз?",
+      "Здравствуйте! Рада, что курс вам понравился. С удовольствием оформлю повторный заказ набора «Детокс». Подскажите, пожалуйста, доставка по тому же адресу, что и в прошлый раз?",
     upsell: {
       recommended: true,
       rule_id: "upsell-015",
