@@ -373,6 +373,52 @@
         "forbidden_patterns": ["\\bcure", "guarantee", "[а-яё]{4,}"],
         "notes": "upsell.why и manager_phrase должны быть по-русски, это проверяет судья"
       }
+    },
+    {
+      "id": "gender-female-client",
+      "category": "product_question",
+      "description": "Клиентка пишет о себе в женском роде, имя нейтральное: ответ без родовых форм ни о себе, ни о клиенте",
+      "products": [{ "name": "ЦЕОЛИТ СТАНДАРТ", "category": "цеолит", "id": "zeolite-standard" }],
+      "input": {
+        "client_message": "Я сама уже всё перепробовала, подруга посоветовала ваш цеолит. Правильно я поняла, что в СТАНДАРТ 60 саше? Если да, я готова заказать.",
+        "customer_context": { "name": "Женя", "deal_status": "Первичный контакт" }
+      },
+      "dialog_history": [],
+      "expected": {
+        "intent": ["product_question", "order"],
+        "sentiment": ["neutral", "positive"],
+        "needs_human": "any",
+        "upsell_recommended": "any",
+        "allowed_upsell_ids": ["zeolite-max", "set-clean-skin", "mineral-complex", "toothpaste-mint"],
+        "reply_language": "ru",
+        "must": ["нейтральные по роду формулировки и о себе, и о клиенте", "количество саше только из базы"],
+        "forbidden_claims": ["обращение к клиенту в женском роде («вы готова», «вы правы, дорогая»)", "отправитель в роде («рада», «готова помочь»)", "количество или цена, которых нет в базе"],
+        "forbidden_patterns": [],
+        "notes": "Родовые формы проверяет автопроверка gender_neutral (data/eval/gender.ts). В базе у СТАНДАРТ расхождение 40/60 саше (TODO в products.json): needs_human=any"
+      }
+    },
+    {
+      "id": "gender-male-client",
+      "category": "returning_customer",
+      "description": "Клиент пишет о себе в мужском роде, имя нейтральное: ответ без родовых форм",
+      "products": [{ "name": "Минеральный комплекс", "category": "насыщение", "id": "mineral-complex" }],
+      "input": {
+        "client_message": "Добрый день! Брал у вас Минеральный комплекс месяц назад, остался доволен. Подскажите, через сколько можно повторить курс? Я уже готов оформить.",
+        "customer_context": { "name": "Саша", "past_purchases": ["mineral-complex"], "deal_status": "Повторная продажа" }
+      },
+      "dialog_history": [],
+      "expected": {
+        "intent": ["product_question", "order"],
+        "sentiment": ["positive", "neutral"],
+        "needs_human": "any",
+        "upsell_recommended": "any",
+        "allowed_upsell_ids": ["zeolite-standard", "set-detox"],
+        "reply_language": "ru",
+        "must": ["перерыв между курсами только из базы", "нейтральные по роду формулировки"],
+        "forbidden_claims": ["обращение к клиенту в мужском роде («вы готов», «вы правы, уважаемый»)", "отправитель в роде («рад», «уточнил»)", "схема или перерыв, которых нет в базе"],
+        "forbidden_patterns": [],
+        "notes": "В базе: перерыв между курсами Минерального комплекса от 7 дней до 3 месяцев"
+      }
     }
   ]
 }

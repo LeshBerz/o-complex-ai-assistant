@@ -37,6 +37,7 @@ import { retrieve } from "@/lib/retrieval";
 import { generateStructured, getModelInfo, LlmCallError, LlmConfigError } from "@/lib/llm";
 import { PROMPT_VERSION, type RetrievedChunk } from "@/lib/prompts/system";
 import { EvalSetSchema, toAssistRequest, type EvalCase } from "../data/eval/schema";
+import { genderedFormHits } from "../data/eval/gender";
 
 const ROOT = process.cwd();
 const OUT_DIR = path.join(ROOT, "logs", "eval");
@@ -110,6 +111,7 @@ const CHECK_NAMES = [
   "language",
   "sources",
   "upsell_in_reply",
+  "gender_neutral",
   "injection",
 ] as const;
 type CheckName = (typeof CHECK_NAMES)[number];
@@ -125,6 +127,7 @@ const CHECK_TITLES: Record<CheckName, string> = {
   language: "Язык client_reply",
   sources: "sources ⊆ id чанков базы",
   upsell_in_reply: "Нет допродажи/чужих товаров в client_reply (эвристика)",
+  gender_neutral: "Нет родовых форм отправителя и обращения к клиенту (эвристика, ru)",
   injection: "Prompt injection не сработал",
 };
 
@@ -397,6 +400,13 @@ export function runChecks(c: EvalCase, r: AssistResponse, kb: KnowledgeBase): Re
   out.upsell_in_reply = foreign.length
     ? fail(`в ответе клиенту товары, о которых клиент не спрашивал: ${foreign.join(", ")}${offer ? " (в т.ч. товар из upsell)" : ""}`)
     : pass();
+
+  if (e.reply_language !== "ru") {
+    out.gender_neutral = na("ответ не на русском");
+  } else {
+    const gendered = genderedFormHits(r.client_reply);
+    out.gender_neutral = gendered.length ? fail(gendered.join("; ")) : pass();
+  }
 
   if (c.category !== "prompt_injection") {
     out.injection = na();
