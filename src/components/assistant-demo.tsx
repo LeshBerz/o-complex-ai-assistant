@@ -1,24 +1,29 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { FlaskConical, Leaf, Server } from "lucide-react";
+import { Compass, FlaskConical, Leaf, Server } from "lucide-react";
 import type { AssistRequestInput, CustomerContext, DialogTurn } from "@/lib/contracts";
 import { demoScenarios } from "@/components/demo-scenarios";
 import { defaultDataSource, requestAssist, type DataSource } from "@/components/assist-client";
 import { ChatPanel } from "@/components/chat-panel";
 import { ResultPanel, type ResultState } from "@/components/result-panel";
-import { cn } from "@/components/ui";
+import { Button, cn } from "@/components/ui";
+import { Tour } from "@/components/tour/tour";
+import { tourSteps } from "@/components/tour/steps";
 
 type PendingRequest = { req: AssistRequestInput; mockVariant: "default" | "needs_human" };
 
-export function AssistantDemo() {
-  const [source, setSource] = useState<DataSource>(defaultDataSource);
+export function AssistantDemo({ autoStartTour = false }: { autoStartTour?: boolean }) {
+  // экскурсия идёт в «Моке», чтобы не тратить дневной лимит модели
+  const [source, setSource] = useState<DataSource>(autoStartTour ? "mock" : defaultDataSource);
   const [scenarioId, setScenarioId] = useState("");
   const [history, setHistory] = useState<DialogTurn[]>([]);
   const [customer, setCustomer] = useState<CustomerContext | undefined>(undefined);
   const [draft, setDraft] = useState("");
   const [result, setResult] = useState<ResultState>({ status: "empty" });
   const [lastRequest, setLastRequest] = useState<PendingRequest | null>(null);
+  const [submitCount, setSubmitCount] = useState(0);
+  const [tour, setTour] = useState({ open: autoStartTour, run: 0 });
   const controllerRef = useRef<AbortController | null>(null);
 
   const scenario = demoScenarios.find((s) => s.id === scenarioId);
@@ -75,6 +80,7 @@ export function AssistantDemo() {
     };
     setHistory([...history, { role: "client", text }]);
     setDraft("");
+    setSubmitCount((n) => n + 1);
     void run({ req, mockVariant: scenario?.mockVariant ?? "default" });
   }
 
@@ -85,6 +91,13 @@ export function AssistantDemo() {
 
   function handleReset() {
     handleScenarioChange(scenarioId);
+  }
+
+  function startTour() {
+    cancelInFlight();
+    setSource("mock");
+    handleScenarioChange("");
+    setTour((t) => ({ open: true, run: t.run + 1 }));
   }
 
   return (
@@ -100,18 +113,24 @@ export function AssistantDemo() {
               <p className="text-xs text-stone-500">Ответ клиенту и подсказка по допродаже по базе знаний</p>
             </div>
           </div>
-          <SourceToggle
-            value={source}
-            onChange={(s) => {
-              cancelInFlight();
-              setSource(s);
-              if (result.status === "loading") setResult({ status: "empty" });
-            }}
-          />
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={startTour} data-tour="tour-button">
+              <Compass className="size-4" />
+              Экскурсия
+            </Button>
+            <SourceToggle
+              value={source}
+              onChange={(s) => {
+                cancelInFlight();
+                setSource(s);
+                if (result.status === "loading") setResult({ status: "empty" });
+              }}
+            />
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:h-[calc(100dvh-4.25rem)] lg:grid-cols-2 lg:gap-6">
+      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-4 px-4 py-4 sm:px-6 sm:py-6 lg:h-[calc(100dvh-4.25rem)] lg:flex-none lg:grid-cols-2 lg:gap-6">
         <ChatPanel
           scenarios={demoScenarios}
           scenarioId={scenarioId}
@@ -124,7 +143,7 @@ export function AssistantDemo() {
           onReset={handleReset}
           loading={result.status === "loading"}
         />
-        <div className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+        <div data-tour="result" className="lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           <ResultPanel
             state={result}
             onInsert={handleInsert}
@@ -132,6 +151,16 @@ export function AssistantDemo() {
           />
         </div>
       </main>
+
+      {tour.open && (
+        <Tour
+          key={tour.run}
+          steps={tourSteps}
+          ctx={{ scenarioId, resultStatus: result.status, submitCount }}
+          actions={{ selectScenario: handleScenarioChange, submit: handleSubmit }}
+          onClose={() => setTour((t) => ({ ...t, open: false }))}
+        />
+      )}
     </div>
   );
 }
@@ -142,7 +171,11 @@ function SourceToggle({ value, onChange }: { value: DataSource; onChange: (s: Da
     { id: "api", label: "API", icon: <Server className="size-3.5" /> },
   ];
   return (
-    <div role="radiogroup" aria-label="Источник данных" className="flex rounded-lg bg-stone-100 p-0.5 text-sm">
+    <div
+      role="radiogroup"
+      aria-label="Источник данных"
+      data-tour="source-toggle"
+      className="flex rounded-lg bg-stone-100 p-0.5 text-sm">
       {options.map((o) => (
         <button
           key={o.id}

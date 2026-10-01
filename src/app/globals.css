@@ -19,3 +19,24 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* Экскурсия: короткое появление, без анимации при prefers-reduced-motion */
+@keyframes tour-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes tour-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tour-in {
+    animation: tour-in 180ms ease-out;
+  }
+  .tour-sheet-in {
+    animation: tour-sheet-in 220ms ease-out;
+  }
+}
